@@ -6573,6 +6573,35 @@ if (window.jQuery)(function($) {
 			}).bind("pagebeforeshow", function() {
 				self.setContainerBackground();
 			});
+			self.element.bind("DOMAttrModified", function(event) {
+				if ('attrChange' in event) {
+					if (event.attrChange == MutationEvent.MODIFICATION) {
+						var $target = $(event.target);
+						var inst = $target.data("page");
+						if (inst) {
+							setTimeout(function() {
+								inst._designRefresh();
+							}, 100);
+						}
+					}
+					return false;
+				}
+			});
+		},
+		_designRefresh: function() {
+			var theme = this.element.attr("data-theme") || "a";
+			this.element.removeClass("ui-page-" + this.options.theme).removeClass("ui-body-" + this.options.theme);
+			this.options.theme = theme;
+			this.element.addClass("ui-page-" + this.options.theme).addClass("ui-body-" + this.options.theme);
+			// 하위로 내려가면서 changeTheme()를 호출한다.
+			this.element.find("div:jqmData(role^='dvc')").each(function() {
+				var $this = $(this);
+				var role = $this.jqmData("role");
+				var instance = $this.data(role);
+				if (instance) {
+					instance._changeTheme();
+				}
+			});
 		},
 		removeContainerBackground: function() {
 			$.mobile.pageContainer.removeClass("ui-overlay-" + $.mobile.getInheritedTheme(this.element.parent()));
@@ -7172,6 +7201,16 @@ if (window.jQuery)(function($) {
 		}
 	});
 })(jQuery);
+Element.prototype._setAttribute = Element.prototype.setAttribute;
+Element.prototype.setAttribute = function(name, val, atevent) {
+	this._setAttribute(name, val);
+	if (atevent) {
+		var e = document.createEvent("MutationEvents");
+		var prev = this.getAttribute(name);
+		e.initMutationEvent("DOMAttrModified", true, true, null, prev, val, name, MutationEvent.MODIFICATION);
+		this.dispatchEvent(e);
+	}
+};
 (function($, undefined) {
 	$.widget("davinci.dvcBase", $.mobile.widget, {
 		options: {
@@ -7212,7 +7251,7 @@ if (window.jQuery)(function($) {
 					self._initWidget();
 					self._appendChildElements();
 					self._initVars();
-					self._attachEvent();
+					self._addDOMAttrModifiedEventListener();
 					self.refresh();
 				};
 				var $parentPage = $el.closest(".ui-page");
@@ -7241,7 +7280,99 @@ if (window.jQuery)(function($) {
 				});
 			}
 		},
-		_attachEvent: function() {},
+		_addDOMAttrModifiedEventListener: function() {
+			var $el = this.element,
+				self = this,
+				o = this.options,
+				cls = this.classes;
+			$el.bind("DOMAttrModified", function(event) {
+				if ('attrChange' in event) {
+					if (event.attrChange == MutationEvent.MODIFICATION) {
+						var $target = $(event.target);
+						var role = $target.jqmData("role");
+						var inst = $target.data(role);
+						if (inst) {
+							setTimeout(function() {
+								inst._designRefresh();
+							}, 100);
+						}
+					}
+					return false;
+				}
+			});
+		},
+		_designRefresh: function() {
+			var $el = this.element,
+				self = this,
+				cls = this.classes;
+			//원래 초기값을 options에 설정한다.
+			for (var o in $.davinci[this.widgetName].prototype.options) {
+				self.options[o] = $.davinci[this.widgetName].prototype.options[o];
+			}
+			// data-* attribute를 다시 읽어온다.
+			for (var o in self.element[0].dataset) {
+				self.options[o] = self.element[0].dataset[o];
+				if (self.options[o].toLowerCase() == "true") {
+					self.options[o] = true;
+				}
+				else if (self.options[o].toLowerCase() == "false") {
+					self.options[o] = false;
+				}
+			}
+			self._removeClasses();
+			self._removeDesignDefault();
+			self._empty();
+			self._initWidget();
+			self._appendChildElements();
+			self._initVars();
+			self.refresh();
+		},
+		_designDefault: function(label) {
+			var $el = this.element,
+				self = this,
+				o = this.options,
+				cls = this.classes;
+			var $c = $("<div class='" + cls.CLS_DESIGN_DEFAULT + "' waper_focus='false' waper_dontsave='true' style='font-family:Tahoma; font-size:12px;' >" + label + "</div>");
+			$el.append($c);
+		},
+		_addAttrDontSaveNDontFocus: function($el) {
+			return $el.attr('waper_focus', 'false').attr('waper_dontsave', 'true');
+		},
+		_removeClasses: function() {
+			var $el = this.element,
+				self = this,
+				o = this.options,
+				classes = this.classes;
+			var classNames = [];
+			for (var cls in classes) {
+				classNames.push(classes[cls]);
+			}
+			$el.removeClass(classNames.join(" "));
+		},
+		_removeDesignDefault: function() {
+			var $el = this.element;
+			$el.children(".dvc-design-default").remove();
+		},
+		_empty: function() {
+			var $el = this.element,
+				self = this,
+				o = this.options,
+				classes = this.classes;
+			$el.empty();
+		},
+		_changeTheme: function() {
+			var $el = this.element,
+				self = this,
+				o = this.options,
+				cls = this.classes;
+			var theme = $el.attr("data-theme");
+			if (!theme) {
+				o.theme = $.davinci.getInheritedTheme($el, "a");
+			}
+			$el.removeClass(cls.CLS_WIDGET + "-a " + cls.CLS_WIDGET + "-b " + cls.CLS_WIDGET + "-c");
+			cls.CLS_THEME = cls.CLS_WIDGET + "-" + o.theme;
+			$el.addClass(cls.CLS_THEME);
+		},
 		_initWidget: function() {},
 		_appendChildElements: function() {},
 		_initVars: function() {},
@@ -7502,6 +7633,7 @@ if (window.jQuery)(function($) {
 			self.$text = $("<div class='" + cls.CLS_BUTTON_TEXT + "' ></div>");
 			$el.append(self.$icon);
 			$el.append(self.$text);
+			self._addAttrDontSaveNDontFocus($el.find("*"));
 		},
 		refresh: function() {
 			var $el = this.element,
@@ -7511,45 +7643,6 @@ if (window.jQuery)(function($) {
 			$.davinci.dvcBase.prototype.refresh.call(this);
 			self.textAlign(o.textAlign);
 			self.text(o.text);
-		},
-		_attachEvent: function() {
-			var $el = this.element,
-				self = this,
-				o = this.options,
-				cls = this.classes;
-			$el.bind({
-				"vmousedown": function(e) {
-					self._prevmousedown();
-					if (self.enable() && self._getAncestorEnable()) {
-						$el.addClass(cls.CLS_BUTTON_DOWN).removeClass(cls.CLS_BUTTON_UP);
-						e.preventDefault();
-						e.stopPropagation();
-					}
-				},
-				"vmouseup vmousecancel": function(e) {
-					if (self._prevmouseup(e)) return;
-					if (self.enable() && self._getAncestorEnable()) {
-						$el.addClass(cls.CLS_BUTTON_UP).removeClass(cls.CLS_BUTTON_DOWN);
-						e.stopPropagation();
-					}
-				},
-				"vclick": function(e) {
-					if (self._prevclick()) return;
-					if (self.enable() && self._getAncestorEnable()) {
-						if (self.scrollviewDragged()) {
-							e.stopPropagation();
-							return;
-						}
-						var index = -1;
-						if (self.$listitem) {
-							index = self.$listitem.find(".dvc-listitem-item-indexable").index(self.$item);
-						}
-						$el.trigger("ev_click", [self, index]);
-						// event를 상위로 전달하지 않도록 한다.
-						e.stopPropagation();
-					}
-				}
-			});
 		},
 		textAlign: function(ta) {
 			var $el = this.element,
@@ -7615,50 +7708,6 @@ if (window.jQuery)(function($) {
 			self.text(o.text);
 			self._checked(o.checked);
 		},
-		_attachEvent: function() {
-			var $el = this.element,
-				self = this,
-				o = this.options,
-				cls = this.classes;
-			$el.bind({
-				"vmousedown": function(e) {
-					self._prevmousedown();
-					if (self.enable() && self._getAncestorEnable()) {
-						$el.addClass(cls.CLS_BUTTON_DOWN).removeClass(cls.CLS_BUTTON_UP);
-						e.preventDefault();
-						e.stopPropagation();
-					}
-				},
-				"vmouseup vmousecancel": function(e) {
-					if (self._prevmouseup(e)) return;
-					if (self.enable() && self._getAncestorEnable()) {
-						// cancel 일때는 제외
-						if (e.type == "vmousecancel") {
-							$el.addClass(cls.CLS_BUTTON_UP).removeClass(cls.CLS_BUTTON_DOWN);
-						}
-						e.stopPropagation();
-					}
-				},
-				"vclick": function(e) {
-					if (self._prevclick()) return;
-					if (self.enable() && self._getAncestorEnable()) {
-						if (self.scrollviewDragged()) {
-							e.stopPropagation();
-							return;
-						}
-						self.toggle();
-						$el.addClass(cls.CLS_BUTTON_UP).removeClass(cls.CLS_BUTTON_DOWN);
-						var index = -1;
-						if (self.$listitem) {
-							index = self.$listitem.find(".dvc-listitem-item-indexable").index(self.$item);
-						}
-						$el.trigger("ev_change", [self, self.checked(), index]);
-						// event를 상위로 전달하지 않도록 한다.
-						e.stopPropagation();
-					}
-				}
-			});
-		},
 		_checked: function(v) {
 			var $el = this.element,
 				self = this,
@@ -7704,70 +7753,6 @@ if (window.jQuery)(function($) {
 			CLS_WIDGET: "dvc-radio",
 			CLS_BUTTON_UP: "dvc-radio-up",
 			CLS_BUTTON_DOWN: "dvc-radio-down"
-		},
-		_attachEvent: function() {
-			var $el = this.element,
-				self = this,
-				o = this.options,
-				cls = this.classes;
-			$el.bind({
-				"vmousedown": function(e) {
-					self._prevmousedown();
-					if (self.enable() && self._getAncestorEnable()) {
-						$el.addClass(cls.CLS_BUTTON_DOWN).removeClass(cls.CLS_BUTTON_UP);
-						if (o.radioEvent == "down") {
-							// sibling중에서 groupName이 같은 것을 찾는다.
-							if (self.checked() == false) {
-								self.checked(true);
-							}
-							var index = -1;
-							if (self.$listitem) {
-								index = self.$listitem.find(".dvc-listitem-item-indexable").index(self.$item);
-							}
-							$el.trigger("ev_change", [self, true, index]);
-						}
-						e.preventDefault();
-						e.stopPropagation();
-					}
-				},
-				"vmouseup vmousecancel": function(e) {
-					if (self._prevmouseup(e)) return;
-					if (self.enable() && self._getAncestorEnable()) {
-						// cancel 일때는 제외
-						if (e.type == "vmousecancel") {
-							$el.addClass(cls.CLS_BUTTON_UP).removeClass(cls.CLS_BUTTON_DOWN);
-						}
-						e.stopPropagation();
-					}
-				},
-				"vclick": function(e) {
-					if (self._prevclick()) return;
-					if (self.enable() && self._getAncestorEnable()) {
-						if (self.scrollviewDragged()) {
-							e.stopPropagation();
-							return;
-						}
-						if (o.radioEvent != "down") {
-							if (o.allowDepress == false) {
-								if (self.checked() == false) {
-									self.checked(true);
-								}
-							}
-							else {
-								self.toggle();
-							}
-							$el.addClass(cls.CLS_BUTTON_UP).removeClass(cls.CLS_BUTTON_DOWN);
-							var index = -1;
-							if (self.$listitem) {
-								index = self.$listitem.find(".dvc-listitem-item-indexable").index(self.$item);
-							}
-							$el.trigger("ev_change", [self, self.checked(), index]);
-						}
-						// event를 상위로 전달하지 않도록 한다.
-						e.stopPropagation();
-					}
-				}
-			});
 		},
 		checked: function(v) {
 			var $el = this.element,
@@ -7833,9 +7818,7 @@ if (window.jQuery)(function($) {
 				o = this.options,
 				cls = this.classes;
 			$.davinci.dvcBase.prototype.refresh.call(this);
-			if (o.src) {
-				this.src(o.src);
-			}
+			this.src(o.src);
 			this.type(o.type);
 		},
 		src: function(url) {
@@ -7844,7 +7827,17 @@ if (window.jQuery)(function($) {
 				o = this.options,
 				cls = this.classes;
 			if (arguments.length) {
-				this.element.css("background-image", "url('" + url + "')");
+				if (url) {
+					var $defaultDesign = $el.find('.' + cls.CLS_DESIGN_DEFAULT);
+					if ($defaultDesign.length > 0) {
+						$defaultDesign.remove();
+					}
+					this.element.css("background-image", "url('" + url + "')");
+				}
+				else {
+					this.element.css("background-image", "none");
+					self._designDefault($el.jqmData("role").slice(3));
+				}
 			} else {
 				var ret = this.element.css("background-image");
 				if (ret.length > 5 && ret.indexOf("url(") === 0) {
@@ -7922,6 +7915,7 @@ if (window.jQuery)(function($) {
 				o = this.options,
 				cls = this.classes;
 			self.$buttonText = $("<div class='" + cls.CLS_IMGBTN_TEXT + "'></div>");
+			self.$buttonText.attr('waper_focus', 'false').attr('waper_dontsave', 'true');
 			$el.append(self.$buttonText);
 		},
 		refresh: function() {
@@ -7932,44 +7926,6 @@ if (window.jQuery)(function($) {
 			$.davinci.dvcBase.prototype.refresh.call(this);
 			self.type(o.type);
 			self.text(o.text);
-		},
-		_attachEvent: function() {
-			var $el = this.element,
-				self = this,
-				o = this.options,
-				cls = this.classes;
-			$el.bind({
-				"vmousedown": function(e) {
-					self._prevmousedown();
-					if (self.enable() && self._getAncestorEnable()) {
-						$el.addClass(cls.CLS_IMGBTN_DOWN).removeClass(cls.CLS_IMGBTN_UP);
-						e.preventDefault();
-						e.stopPropagation();
-					}
-				},
-				"vmouseup vmousecancel": function(e) {
-					if (self._prevmouseup(e)) return;
-					if (self.enable() && self._getAncestorEnable()) {
-						$el.addClass(cls.CLS_IMGBTN_UP).removeClass(cls.CLS_IMGBTN_DOWN);
-						e.stopPropagation();
-					}
-				},
-				"vclick": function(e) {
-					if (self._prevclick()) return;
-					if (self.enable() && self._getAncestorEnable()) {
-						if (self.scrollviewDragged()) {
-							e.stopPropagation();
-							return;
-						}
-						var index = -1;
-						if (self.$listitem) {
-							index = self.$listitem.find(".dvc-listitem-item-indexable").index(self.$item);
-						}
-						$el.trigger("ev_click", [self, index]);
-						e.stopPropagation();
-					}
-				}
-			});
 		},
 		type: function(t) {
 			var $el = this.element,
@@ -8057,6 +8013,7 @@ if (window.jQuery)(function($) {
 				o = this.options,
 				cls = this.classes;
 			self.$labelText = $("<div cLass='" + cls.CLS_LABEL_TEXT + "'></div>").appendTo($el);
+			self._addAttrDontSaveNDontFocus($el.find("*"));
 		},
 		refresh: function() {
 			var $el = this.element,
@@ -8066,44 +8023,6 @@ if (window.jQuery)(function($) {
 			$.davinci.dvcBase.prototype.refresh.call(this);
 			self.textAlign(o.textAlign);
 			self.text(o.text);
-		},
-		_attachEvent: function() {
-			var $el = this.element,
-				self = this,
-				o = this.options,
-				cls = this.classes;
-			$el.bind({
-				"vmousedown": function(e) {
-					self._prevmousedown();
-					if (self.enable() && self._getAncestorEnable()) {
-						$el.addClass(cls.CLS_LABEL_DOWN).removeClass(cls.CLS_LABEL_UP);
-						e.preventDefault();
-						e.stopPropagation();
-					}
-				},
-				"vmouseup vmousecancel": function(e) {
-					if (self._prevmouseup(e)) return;
-					if (self.enable() && self._getAncestorEnable()) {
-						$el.addClass(cls.CLS_LABEL_UP).removeClass(cls.CLS_LABEL_DOWN);
-						e.stopPropagation();
-					}
-				},
-				"vclick": function(e) {
-					if (self._prevclick()) return;
-					if (self.enable() && self._getAncestorEnable()) {
-						if (self.scrollviewDragged()) {
-							e.stopPropagation();
-							return;
-						}
-						var index = -1;
-						if (self.$listitem) {
-							index = self.$listitem.find(".dvc-listitem-item-indexable").index(self.$item);
-						}
-						$el.trigger("ev_click", [self, index]);
-						e.stopPropagation();
-					}
-				}
-			});
 		},
 		textAlign: function(ta) {
 			var $el = this.element,
@@ -8181,8 +8100,8 @@ if (window.jQuery)(function($) {
 			self.$progressBody = $progressBody;
 			self.$progressBar = $progressBar;
 			$el.append($progressBody);
+			self._addAttrDontSaveNDontFocus($el.find("*"));
 		},
-		_attachEvent: function() {},
 		_getAverage: function() {
 			var $el = this.element,
 				self = this,
@@ -8304,55 +8223,7 @@ if (window.jQuery)(function($) {
 			$sliderBody.append($sliderBar);
 			$el.append($sliderBody);
 			$el.append($sliderHandle);
-		},
-		_attachEvent: function() {
-			var $el = this.element,
-				self = this,
-				o = self.options,
-				cls = this.classes;
-			self.dragState = false;
-			$el.bind('vmousedown', function(event) {
-				if (self.enable() && self._getAncestorEnable()) {
-					self.$sliderHandle.addClass(cls.CLS_SLIDER_HANDLE_DOWN).removeClass(cls.CLS_SLIDER_HANDLE_UP);
-					var v = self._pageX2Value(event.pageX);
-					self.value(v);
-					if (self.oldValue != o.value) {
-						var index = -1;
-						if (self.$listitem) {
-							index = self.$listitem.find(".dvc-listitem-item-indexable").index(self.$item);
-						}
-						$el.trigger("ev_change", [self, o.value, index]);
-						self.oldValue = o.value;
-					}
-					self.dragState = true;
-					return false;
-				}
-			});
-			$(document).bind('vmousemove', function(event) {
-				if (self.dragState) {
-					if (self.enable() && self._getAncestorEnable()) {
-						var v = self._pageX2Value(event.pageX);
-						self.value(v);
-						if (self.oldValue != o.value) {
-							var index = -1;
-							if (self.$listitem) {
-								index = self.$listitem.find(".dvc-listitem-item-indexable").index(self.$item);
-							}
-							$el.trigger("ev_change", [self, o.value, index]);
-							self.oldValue = o.value;
-						}
-					}
-				}
-			});
-			$el.add(document).bind('vmouseup', function(event) {
-				if (self.dragState) {
-					if (self.enable() && self._getAncestorEnable()) {
-						self.$sliderHandle.addClass(cls.CLS_SLIDER_HANDLE_UP).removeClass(cls.CLS_SLIDER_HANDLE_DOWN);
-						self.dragState = false;
-						return false;
-					}
-				}
-			});
+			self._addAttrDontSaveNDontFocus($el.find("*"));
 		},
 		_getAverage: function() {
 			var $el = this.element,
@@ -8452,6 +8323,9 @@ if (window.jQuery)(function($) {
 			var $text = $("<div class='" + cls.CLS_SWITCH_TEXT + "'></div>");
 			var $onText = $("<div class='" + cls.CLS_SWITCH_ON_TEXT + "'>" + o.checkedLabel + "</div>");
 			var $offText = $("<div class='" + cls.CLS_SWITCH_OFF_TEXT + "'>" + o.uncheckedLabel + "</div>");
+			$text.attr('waper_focus', 'false').attr('waper_dontsave', 'true');
+			$onText.attr('waper_focus', 'false').attr('waper_dontsave', 'true');
+			$offText.attr('waper_focus', 'false').attr('waper_dontsave', 'true');
 			$text.append($onText);
 			$text.append($offText);
 			var $handle = $("<div class='" + cls.CLS_SWITCH_HANDLE + "'><div class='" + cls.CLS_SWITCH_HANDLE_LEFT + "'></div><div class='" + cls.CLS_SWITCH_HANDLE_CENTER + "'></div><div class='" + cls.CLS_SWITCH_HANDLE_RIGHT + "'></div></div>");
@@ -8471,82 +8345,7 @@ if (window.jQuery)(function($) {
 			});
 			this.$onImage = $onImage;
 			this.$offImage = $offImage;
-		},
-		_attachEvent: function() {
-			var $el = this.element,
-				self = this,
-				o = self.options;
-			var touchState = false;
-			var minX = self.handleWidth / 2;
-			var maxX = minX + self.maxRange;
-			var oldX;
-			var dragging = false;
-			// x값의 상한/하한 값을 보정하고 currentPos에 저장한다.
-			var setCurrentPos = function(x) {
-				if (x < minX) {
-					x = minX;
-				}
-				if (x > maxX) {
-					x = maxX;
-				}
-				self.currentPos = (x - minX);
-			};
-			$el.bind('vmousedown', function(event) {
-				if (self.enable() && self._getAncestorEnable()) {
-					touchState = true;
-					return false;
-				}
-			});
-			$(document).bind('vmousemove', function(event) {
-				if (touchState) {
-					if (self.enable() && self._getAncestorEnable()) {
-						var OffsetLeft = $el.offset().left;
-						var x = (event.pageX - OffsetLeft);
-						if (!oldX) {
-							oldX = x;
-						}
-						else {
-							if (!dragging) {
-								if (Math.abs(oldX - x) > 5) {
-									dragging = true;
-								}
-							}
-							else {
-								setCurrentPos(x);
-								self._draw(self.currentPos);
-							}
-						}
-						return false;
-					}
-				}
-			});
-			$el.add(document).bind('vmouseup', function(event) {
-				if (touchState) {
-					if (self.enable() && self._getAncestorEnable()) {
-						var OffsetLeft = $el.offset().left;
-						var x = (event.pageX - OffsetLeft);
-						setCurrentPos(x);
-						if (dragging == false) {
-							self._setChecked(!self.checked());
-							self._animation(self.currentPos);
-						}
-						else {
-							// 이 때, ON/OFF를 결정하여 Animation을 발생시킨다.
-							if (self.currentPos > (self.maxRange / 2)) {
-								self._setChecked(true);
-							}
-							else {
-								self._setChecked(false);
-							}
-							self._animation(self.currentPos);
-						}
-						touchState = false;
-						oldX = undefined;
-						dragging = false;
-						return false;
-					}
-				}
-			});
+			self._addAttrDontSaveNDontFocus($el.find("*"));
 		},
 		_animation: function(start) {
 			var $el = this.element,
@@ -8730,21 +8529,7 @@ if (window.jQuery)(function($) {
 			this.$input = $input;
 			self.enable(o.enable);
 			self.visible(o.visible);
-		},
-		_attachEvent: function() {
-			var $el = this.element,
-				self = this,
-				o = this.options;
-			var $input = this.$input;
-			$input.bind('vclick', function(e) {
-				var index = -1;
-				if (self.$listitem) {
-					index = self.$listitem.find(".dvc-listitem-item-indexable").index(self.$item);
-				}
-				$el.trigger("ev_click", [self, index]);
-				// event를 상위로 전달하지 않도록 한다.
-				e.stopPropagation();
-			});
+			self._addAttrDontSaveNDontFocus($el.find("*"));
 		},
 		enable: function(e) {
 			var input = this.element.find("textarea");
@@ -8840,119 +8625,7 @@ if (window.jQuery)(function($) {
 			}
 			self.enable(o.enable);
 			self.visible(o.visible);
-		},
-		_attachEvent: function() {
-			var $el = this.element,
-				self = this,
-				o = this.options,
-				cls = this.classes;
-			var $btnClear = this.$btnClear;
-			var $input = this.$input;
-			var input0 = $input[0];
-			var fireEvent = function() {
-				if (document.createEvent) {
-					var e;
-					if (window.KeyEvent) {
-						e = document.createEvent('KeyEvents');
-						e.initKeyEvent('keyup', true, true, window, false, false, false, false, 65, 0);
-					}
-					else {
-						e = document.createEvent('UIEvents');
-						e.initUIEvent('keyup', true, true, window, 1);
-						e.keyCode = 65;
-					}
-					input0.dispatchEvent(e);
-				}
-				else {
-					var e = document.createEventObject();
-					e.keyCode = 65;
-					input0.fireEvent('onkeyup', e);
-				}
-			};
-			self._oldValue = input0.value;
-			$input.focus(function(e) {
-				if ($input.val()) {
-					if (o.clearButton) {
-						$btnClear.show();
-						$input.css("right", 30);
-					}
-				}
-				if (self._timer) clearInterval(self._timer);
-				self._timer = setInterval(function() {
-					if (self._oldValue != input0.value) {
-						self._oldValue = input0.value;
-						fireEvent();
-					}
-				}, 100);
-				var index = -1;
-				if (self.$listitem) {
-					index = self.$listitem.find(".dvc-listitem-item-indexable").index(self.$item);
-				}
-				$el.trigger("ev_focus", [self, index]);
-				// event를 상위로 전달하지 않도록 한다.
-				e.stopPropagation();
-			});
-			$input.blur(function(e) {
-				// input내부의 x버튼에서 blur가 발생했으면...skip
-				// fTextfieldBtnClearSkip는 dvcImageButton에서 설정하는 전역변수
-				//if(!fTextfieldBtnClearSkip) {
-				if (o.clearButton) {
-					$btnClear.hide();
-					$input.css("right", 0);
-				}
-				//}
-				if (self._timer) clearInterval(self._timer);
-				self._timer = null;
-				var index = -1;
-				if (self.$listitem) {
-					index = self.$listitem.find(".dvc-listitem-item-indexable").index(self.$item);
-				}
-				$el.trigger("ev_blur", [self, index]);
-				// event를 상위로 전달하지 않도록 한다.
-				e.stopPropagation();
-			});
-			$input.bind('keyup', function(e) {
-				if ($input.val()) {
-					if (o.clearButton) {
-						$btnClear.show();
-						$input.css("right", 30);
-					}
-				}
-				else {
-					if (o.clearButton) {
-						$btnClear.hide();
-						$input.css("right", 0);
-					}
-				}
-				if (self.enable() == true) {
-					var index = -1;
-					if (self.$listitem) {
-						index = self.$listitem.find(".dvc-listitem-item-indexable").index(self.$item);
-					}
-					$el.trigger("ev_keyup", [self, self.text(), e.keyCode, index]);
-					// event를 상위로 전달하지 않도록 한다.
-					e.stopPropagation();
-				}
-			});
-			$input.bind('vclick', function(e) {
-				if (self.enable() == true) {
-					var index = -1;
-					if (self.$listitem) {
-						index = self.$listitem.find(".dvc-listitem-item-indexable").index(self.$item);
-					}
-					$el.trigger("ev_click", [self, index]);
-					// event를 상위로 전달하지 않도록 한다.
-					e.stopPropagation();
-				}
-			});
-			if (o.clearButton) {
-				$btnClear.bind('ev_click', function() {
-					$input.val('');
-					$btnClear.hide();
-					$input.css("right", 0);
-					return false;
-				});
-			}
+			self._addAttrDontSaveNDontFocus($el.find("*"));
 		},
 		focus: function() {
 			var input = this.element.find("input");
@@ -9019,32 +8692,7 @@ if (window.jQuery)(function($) {
 				self = this,
 				o = this.options,
 				cls = this.classes;
-			var $audio = $("<audio>").appendTo($el);
-			$audio[0].id = $el[0].id + "_audio";
-			if (o.loop) {
-				$audio.attr("loop", "");
-			}
-			if (o.controls) {
-				$audio.attr("controls", "");
-			}
-			if (o.autoplay) {
-				$audio.attr("autoplay", "");
-			}
-			if (o.src) {
-				$audio.attr("src", o.src);
-			}
-			var audio = $audio[0];
-			self._audio = audio;
-		},
-		_attachEvent: function() {
-			var $el = this.element,
-				self = this,
-				o = this.options,
-				cls = this.classes;
-			self._audio.addEventListener("ended", function(e) {
-				self.playing = false;
-				$el.trigger("ev_ended", self);
-			});
+			self._designDefault($el.jqmData("role").slice(3));
 		},
 		audio: function() {
 			return this._audio;
@@ -9127,38 +8775,7 @@ if (window.jQuery)(function($) {
 			var video = $video[0];
 			self._video = video;
 			self.$video = $video;
-		},
-		_attachEvent: function() {
-			var $el = this.element,
-				self = this,
-				o = this.options;
-			var video = self._video;
-			var $poster = self.$poster;
-			video.addEventListener("pause", function(e) {
-				$poster.show();
-				video.style.cssText = "position: absolute; top:-3000px !important;";
-				self.playing = false;
-			});
-			$poster.bind("vclick", function() {
-				if ($.davinci.getOSName() == "iOS" && $.davinci.getDeviceType() == "Phone") {
-					video.style.cssText = "position: absolute; top:-3000px !important;";
-				}
-				else {
-					if ($.davinci.getOSName() == "Android" && $.davinci.getDeviceType() == "Phone" && $.davinci.getOSVersion()[0] == "2") {
-						setTimeout(function() {
-							video.style.cssText = "position: absolute; top:-3000px !important;";
-							self.play();
-						}, 10);
-						return false;
-					}
-					else {
-						video.style.cssText = "position: absolute; top:0px !important;";
-					}
-				}
-				//			$poster.hide();
-				self.play();
-				return false;
-			});
+			self._addAttrDontSaveNDontFocus($el.find("*"));
 		},
 		play: function() {
 			this.$poster.hide();
@@ -9205,6 +8822,23 @@ if (window.jQuery)(function($) {
 				cls = this.classes;
 			$el.addClass(cls.CLS_WIDGET);
 		},
+		_empty: function() {},
+		_designRefresh: function() {
+			var $el = this.element,
+				self = this,
+				o = this.options,
+				cls = this.classes;
+			$.davinci.dvcBase.prototype._designRefresh.call(this);
+			// 하위로 내려가면서 changeTheme()를 호출한다.
+			$el.find("div:jqmData(role^='dvc')").each(function() {
+				var $this = $(this);
+				var role = $this.jqmData("role");
+				var instance = $this.data(role);
+				if (instance) {
+					instance._changeTheme();
+				}
+			});
+		},
 		refresh: function() {}
 	});
 })(jQuery);
@@ -9229,6 +8863,23 @@ if (window.jQuery)(function($) {
 			}
 			cls.CLS_THEME = cls.CLS_WIDGET + "-" + o.theme;
 			$el.addClass(cls.CLS_WIDGET + ' ' + cls.CLS_HEADER_UITITLE + ' ' + cls.CLS_THEME);
+		},
+		_empty: function() {},
+		_designRefresh: function() {
+			var $el = this.element,
+				self = this,
+				o = this.options,
+				cls = this.classes;
+			$.davinci.dvcBase.prototype._designRefresh.call(this);
+			// 하위로 내려가면서 changeTheme()를 호출한다.
+			$el.find("div:jqmData(role^='dvc')").each(function() {
+				var $this = $(this);
+				var role = $this.jqmData("role");
+				var instance = $this.data(role);
+				if (instance) {
+					instance._changeTheme();
+				}
+			});
 		},
 		_attachEvent: function() {
 			var $el = this.element,
@@ -9279,6 +8930,23 @@ if (window.jQuery)(function($) {
 			}
 			cls.CLS_THEME = cls.CLS_WIDGET + "-" + o.theme;
 			$el.addClass(cls.CLS_WIDGET + ' ' + cls.CLS_THEME);
+		},
+		_empty: function() {},
+		_designRefresh: function() {
+			var $el = this.element,
+				self = this,
+				o = this.options,
+				cls = this.classes;
+			$.davinci.dvcBase.prototype._designRefresh.call(this);
+			// 하위로 내려가면서 changeTheme()를 호출한다.
+			$el.find("div:jqmData(role^='dvc')").each(function() {
+				var $this = $(this);
+				var role = $this.jqmData("role");
+				var instance = $this.data(role);
+				if (instance) {
+					instance._changeTheme();
+				}
+			});
 		},
 		_attachEvent: function() {
 			var $el = this.element,
@@ -9662,41 +9330,15 @@ if (window.jQuery)(function($) {
 				self = this,
 				o = this.options,
 				classes = this.classes;
-			this._$clip.wrapInner($("<div>"));
-			this._$view = this._$clip.children().addClass(classes.CLS_WIDGET);
+			if ($el.children().length == 0) {
+				self._designDefault($el.jqmData("role").slice(3));
+			}
 		},
 		_initVars: function() {
 			var $el = this.element,
 				self = this,
 				o = this.options,
 				classes = this.classes;
-			if (o.scrollBodyWidth) {
-				this._$view.css("min-width", o.scrollBodyWidth);
-			}
-			if ($.davinci.getOSName() === "Android") {
-				o.scrollMethod = "position";
-			}
-			this._$clip.css("overflow", o.scrollMethod === "scroll" ? "scroll" : "hidden");
-			this._makePositioned(this._$clip);
-			this._$view.css("overflow", "hidden");
-			o.showScrollBars = o.scrollMethod === "scroll" ? false : o.showScrollBars;
-			this._makePositioned(this._$view);
-			this._$view.css({
-				left: 0,
-				top: 0
-			});
-			this._sx = 0;
-			this._sy = 0;
-			this._hTrackerShow = true;
-			this._vTrackerShow = true;
-			this._initMomentumTracker();
-			// android의 경우에는 scrollivew의 성능 개선을 위한 optimization을 적용 한다.
-			if ($.davinci.getOSName() == "Android") {
-				this.isOptimization = true;
-			}
-			else {
-				this.isOptimization = false;
-			}
 		},
 		_initMomentumTracker: function() {
 			var direction = this.options.direction;
@@ -9830,55 +9472,22 @@ if (window.jQuery)(function($) {
 			}
 			return null;
 		},
-		_attachEvent: function() {
-			var self = this;
-			if (this.options.eventType === "mouse") {
-				this._dragStartEvt = "mousedown";
-				this._dragStartCB = function(e) {
-					return self._handleDragStart(e, e.clientX, e.clientY);
-				};
-				this._dragMoveEvt = "mousemove";
-				this._dragMoveCB = function(e) {
-					return self._handleDragMove(e, e.clientX, e.clientY);
-				};
-				this._dragStopEvt = "mouseup";
-				this._dragStopCB = function(e) {
-					return self._handleDragStop(e);
-				};
-			}
-			else // "touch"
-			{
-				this._dragStartEvt = "touchstart";
-				this._dragStartCB = function(e) {
-					var t = e.originalEvent.targetTouches[0];
-					return self._handleDragStart(e, t.pageX, t.pageY);
-				};
-				this._dragMoveEvt = "touchmove";
-				this._dragMoveCB = function(e) {
-					var t = e.originalEvent.targetTouches[0];
-					return self._handleDragMove(e, t.pageX, t.pageY);
-				};
-				this._dragStopEvt = "touchend";
-				this._dragStopCB = function(e) {
-					return self._handleDragStop(e);
-				};
-			}
-			this._$clip.bind(this._dragStartEvt, this._dragStartCB); // $view가 아닌 $clip전체에서 dragStart가 되도록 함.
-			if (this.options.showScrollBars) {
-				var $c = this._$clip;
-				var prefix = "<div class=\"ui-scrollbar ui-scrollbar-";
-				var suffix = "\"><div class=\"ui-scrollbar-track\"><div class=\"ui-scrollbar-thumb\"></div></div></div>";
-				if (this._vTracker) {
-					$c.append(prefix + "y" + suffix);
-					this._$vScrollBar = $c.children(".ui-scrollbar-y");
-					this.$vsbt = this._$vScrollBar.find(".ui-scrollbar-thumb");
+		_empty: function() {},
+		_designRefresh: function() {
+			var $el = this.element,
+				self = this,
+				o = this.options,
+				cls = this.classes;
+			$.davinci.dvcBase.prototype._designRefresh.call(this);
+			// 하위로 내려가면서 changeTheme()를 호출한다.
+			$el.find("div:jqmData(role^='dvc')").each(function() {
+				var $this = $(this);
+				var role = $this.jqmData("role");
+				var instance = $this.data(role);
+				if (instance) {
+					instance._changeTheme();
 				}
-				if (this._hTracker) {
-					$c.append(prefix + "x" + suffix);
-					this._$hScrollBar = $c.children(".ui-scrollbar-x");
-					this.$hsbt = this._$hScrollBar.find(".ui-scrollbar-thumb");
-				}
-			}
+			});
 		},
 		_handleDragStart: function(e, ex, ey) {
 			if (this.enable() == false) {
@@ -10529,6 +10138,14 @@ if (window.jQuery)(function($) {
 			$el.append($pickerFrame);
 			$el.append($pickerBarBody);
 			this._$view = this._$clip.find('.' + cls.CLS_SCROLLVIEW_VIEW);
+			self._addAttrDontSaveNDontFocus($el.find("*"));
+		},
+		_empty: function() {
+			var $el = this.element,
+				self = this,
+				o = this.options,
+				classes = this.classes;
+			$el.empty();
 		},
 		refresh: function() {
 			$.davinci.dvcScrollview.prototype.refresh.call(this);
@@ -10746,7 +10363,6 @@ if (window.jQuery)(function($) {
 				self = this,
 				o = this.options,
 				cls = this.classes;
-			$.davinci.dvcScrollview.prototype._initWidget.call(this);
 			$el.addClass(cls.CLS_WIDGET);
 		},
 		_appendChildElements: function() {
@@ -10754,17 +10370,18 @@ if (window.jQuery)(function($) {
 				self = this,
 				o = this.options,
 				cls = this.classes;
-			var $child = $("<div class='" + cls.CLS_SCROLLVIEW_VIEW + "'></div>");
-			$el.append($child);
-			self._$view = $child;
+			self._designDefault($el.jqmData("role").slice(3));
 			// Indicator를 append하고, 위젯 생성을 한다.
 			var $indicator = $("<div></div>");
+			$indicator.attr('waper_focus', 'false');
+			$indicator.attr('waper_dontsave', 'true');
 			$el.append($indicator);
 			$indicator.dvcCarouselIndicator({
 				"direction": o.direction,
 				"size": o.indicatorSize
 			});
 			self.indicator = $indicator.data("dvcCarouselIndicator");
+			self.indicator.setCount(5);
 			if (o.indicatorVisible) {
 				self.indicator.visible(true);
 			}
@@ -10777,28 +10394,13 @@ if (window.jQuery)(function($) {
 				self = this,
 				o = this.options,
 				cls = this.classes;
-			$.davinci.dvcScrollview.prototype._initVars.call(this);
-			this.totalPages = 0;
-			this.nowPage = -1;
-			if (o.direction == "y") {
-				this._$view.css({
-					left: 0,
-					top: 0,
-					width: "100%"
-				});
-			}
-			else {
-				o.direction = "x";
-				this._$view.css({
-					left: 0,
-					top: 0,
-					height: "100%"
-				});
-			}
-			if (o.infinite) {
-				o.directionLock = false;
-			}
-			this._initMomentumTracker();
+		},
+		_empty: function() {
+			var $el = this.element,
+				self = this,
+				o = this.options,
+				classes = this.classes;
+			$el.empty();
 		},
 		add: function(html, dynamicPage) {
 			var $el = this.element,
@@ -10905,73 +10507,6 @@ if (window.jQuery)(function($) {
 				self = this,
 				o = this.options,
 				cls = this.classes;
-			var totalPages;
-			var $carouselPage = this._$view.children('.' + cls.CLS_CAROUSEL_PAGE);
-			var pagesOuterWidth = maxWidthPage = 0;
-			var pagesOuterHeight = maxHeightPage = 0;
-			var totalPages = $carouselPage.length;
-			maxWidthPage = $el.width();
-			maxHeightPage = $el.height();
-			if (totalPages > 0) {
-				// 1. 크기를 계산하도록 하는 코드 (화면 회전시 필요)
-				if (o.direction == "y") {
-					$carouselPage.each(function(i, elem) {
-						$(elem).css({
-							"height": maxHeightPage - o.pageGap * 2,
-							"padding-top": o.pageGap,
-							"padding-bottom": o.pageGap,
-							"float": "none"
-						});
-						pagesOuterHeight += $(elem).outerHeight(true);
-						maxHeightPage = ($(elem).outerHeight(true) >= maxHeightPage) ? $(elem).outerHeight(true) : maxHeightPage;
-					});
-					self._$view.height(pagesOuterHeight).width($el.width());
-				}
-				else {
-					$carouselPage.each(function(i, elem) {
-						$(elem).css({
-							"width": maxWidthPage - o.pageGap * 2,
-							"padding-left": o.pageGap,
-							"padding-right": o.pageGap
-						});
-						pagesOuterWidth += $(elem).outerWidth(true);
-						maxWidthPage = ($(elem).outerWidth(true) >= maxWidthPage) ? $(elem).outerWidth(true) : maxWidthPage;
-					});
-					self._$view.width(pagesOuterWidth).height($el.height());
-				}
-				// 2. Page 생성, pagebeforeshow를 발생한다.
-				var $dvcPages = $carouselPage.find(":jqmData(role='page')");
-				for (var i = 0; i < $dvcPages.length; i++) {
-					var $dvcPage = $dvcPages.eq(i);
-					if (!$dvcPage.data("page")) {
-						$dvcPage.page();
-						$dvcPage.css("min-height", 0);
-						$._fnFindActivePagesInPagebox($dvcPage).each(function() {
-							$._fnSubpageEventGenerate(this, "ev_pagebeforeshow");
-						});
-						var pageInstance = $dvcPage.data("page");
-						$dvcPage._pageTrigger("ev_pagebeforeshow", [pageInstance]);
-					}
-				}
-				// 4. 화면을 보이게 한다.
-				$carouselPage.css({
-					'display': 'block'
-				});
-				// 5. pageshow를 발생한다.
-				for (var i = 0; i < $dvcPages.length; i++) {
-					var $dvcPage = $dvcPages.eq(i);
-					if (!$dvcPage.data("page")) {
-						$._fnFindActivePagesInPagebox($dvcPage).each(function() {
-							$._fnSubpageEventGenerate(this, "ev_pageshow");
-						});
-						var pageInstance = $dvcPage.data("page");
-						$dvcPage._pageTrigger("ev_pageshow", [pageInstance]);
-					}
-				}
-				if (self.nowPage < 0) self.nowPage = 1;
-				self.setIndex(self.nowPage);
-			}
-			self.indicator.setCount(self.getCount());
 			return this;
 		},
 		setIndex: function(pageNumber, duration, skipEvent) {
@@ -11351,99 +10886,80 @@ if (window.jQuery)(function($) {
 				o.theme = $.davinci.getInheritedTheme($el, "a");
 			}
 			cls.CLS_THEME = cls.CLS_WIDGET + "-" + o.theme;
-			$el.addClass(cls.CLS_WIDGET + ' ' + cls.CLS_LAYOUTVIEW_UP + ' ' + cls.CLS_THEME);
-			this._initType();
+			if ($el.children().length == 0) {
+				$el.addClass(cls.CLS_WIDGET + ' ' + cls.CLS_THEME);
+			}
+			else {
+				$el.addClass(cls.CLS_WIDGET + ' ' + cls.CLS_LAYOUTVIEW_UP + ' ' + cls.CLS_THEME);
+				this._initType();
+			}
+			self._findScrollview();
 		},
 		_appendChildElements: function() {
 			var $el = this.element,
 				self = this,
 				o = this.options,
 				cls = this.classes;
-			switch (o.type) {
-			case "link":
-				var $link = $("<div class='" + cls.CLS_LAYOUTVIEW_LINK_ICON + "'></div>");
-				$link.appendTo($el);
-				break;
-			case "checkbox":
-			case "checkboxradio":
-				var $checkbox = $("<div class='" + cls.CLS_LAYOUTVIEW_CHK_ICON + "'></div>");
-				$checkbox.appendTo($el);
-				self.$checkbox = $checkbox;
-				break;
+			if ($el.children().length == 0) {
+				self._designDefault($el.jqmData("role").slice(3));
+			}
+			else {
+				switch (o.type) {
+				case "link":
+					var $link = $("<div class='" + cls.CLS_LAYOUTVIEW_LINK_ICON + "'></div>");
+					$link.appendTo($el);
+					break;
+				case "checkbox":
+				case "checkboxradio":
+					var $checkbox = $("<div class='" + cls.CLS_LAYOUTVIEW_CHK_ICON + "'></div>");
+					$checkbox.appendTo($el);
+					self.$checkbox = $checkbox;
+					break;
+				}
+				if ($link) {
+					self._addAttrDontSaveNDontFocus($link);
+				}
+				if ($checkbox) {
+					self._addAttrDontSaveNDontFocus($checkbox);
+				}
+				$el.find("div:jqmData(role^='dvc')").each(function() {
+					var self = this,
+						$this = $(this);
+					var role = $this.jqmData('role');
+					var id = this.id;
+					if (!id) {
+						id = $this.attr("subid");
+					}
+					if (role) {
+						if ($this.data(role)) {
+							return true;
+						}
+						$this[role]();
+					}
+				});
 			}
 		},
-		_attachEvent: function() {
+		_empty: function() {
 			var $el = this.element,
 				self = this,
 				o = this.options,
 				cls = this.classes;
-			$el.bind({
-				'swipeleft': function(e, ui) {
-					if (o.type == "none") {
-						return;
-					}
-					if (self.enable() && self._getAncestorEnable()) {
-						$el.trigger("ev_swipeleft", [self]);
-						e.stopPropagation();
-					}
-				},
-				'swiperight': function(e, ui) {
-					if (o.type == "none") {
-						return;
-					}
-					if (self.enable() && self._getAncestorEnable()) {
-						$el.trigger("ev_swiperight", [self]);
-						e.stopPropagation();
-					}
-				},
-				"vmousedown": function(e) {
-					self._prevmousedown();
-					if (o.type == "none") {
-						return;
-					}
-					if (self.enable() && self._getAncestorEnable()) {
-						$(this).removeClass(cls.CLS_LAYOUTVIEW_UP).addClass(cls.CLS_LAYOUTVIEW_DOWN);
-						e.stopPropagation();
-					}
-					// android bug를 막기위해 추가
-					if (e.target.nodeName.toLowerCase() != "input") {
-						e.preventDefault();
-					}
-				},
-				"vmouseup vmousecancel": function(e) {
-					if (self._prevmouseup(e)) return;
-					if (o.type == "none") {
-						return;
-					}
-					if (self.enable() && self._getAncestorEnable()) {
-						$(this).removeClass(cls.CLS_LAYOUTVIEW_DOWN).addClass(cls.CLS_LAYOUTVIEW_UP);
-						e.stopPropagation();
-					}
-				},
-				"vclick": function(e) {
-					if (self._prevclick()) return;
-					if (o.type == "none") {
-						return;
-					}
-					if (self.enable() && self._getAncestorEnable()) {
-						if (self.scrollviewDragged()) {
-							return;
-						}
-						if (o.type == "checkbox") {
-							self.toggle();
-							$el.trigger("ev_change", [self, self.checked()]);
-						}
-						else if (o.type == "radio" || o.type == "checkboxradio") {
-							if (self.checked() == false) {
-								self.checked(true);
-							}
-							$el.trigger("ev_change", [self, true]);
-						}
-						else {
-							$el.trigger("ev_click", self);
-						}
-						e.stopPropagation();
-					}
+			// 하위 element 제거
+			$el.children('.' + cls.CLS_LAYOUTVIEW_LINK_ICON + ", ." + cls.CLS_LAYOUTVIEW_CHK_ICON).remove();
+		},
+		_designRefresh: function() {
+			var $el = this.element,
+				self = this,
+				o = this.options,
+				cls = this.classes;
+			$.davinci.dvcBase.prototype._designRefresh.call(this);
+			// 하위로 내려가면서 changeTheme()를 호출한다.
+			$el.find("div:jqmData(role^='dvc')").each(function() {
+				var $this = $(this);
+				var role = $this.jqmData("role");
+				var instance = $this.data(role);
+				if (instance) {
+					instance._changeTheme();
 				}
 			});
 		},
@@ -11604,7 +11120,7 @@ if (window.jQuery)(function($) {
 				self = this,
 				o = this.options,
 				cls = this.classes;
-			var $designItem = $("<div class='" + cls.CLS_LISTITEM_ITEM_DESIGN + ' ' + cls.CLS_LISTITEM_ITEM_INDEXABLE_DESIGN + ' ' + cls.CLS_LISTITEM_ITEM_UP_DESIGN + "'></div>");
+			var $designItem = $el.find("." + cls.CLS_LISTITEM_ITEM);
 			var $items = $("<div class='" + cls.CLS_LISTITEM_ITEMS + "'></div>");
 			self.$designItem = $designItem;
 			self.$items = $items;
@@ -11612,22 +11128,38 @@ if (window.jQuery)(function($) {
 			$el.find("[id]").not("[subid]").each(function() {
 				this.outerHTML = this.outerHTML.replace(/\sid/g, " subid");
 			});
-			var htmlString = $el[0].innerHTML;
-			$el.children().remove();
-			$designItem.append(htmlString);
-			$el.append($designItem);
-			$el.append($items);
-			switch (o.type) {
-			case "link":
-				var $link = $("<div class='" + cls.CLS_LISTITEM_LINK_ICON + "'></div>");
-				$link.appendTo(self.$designItem);
-				break;
-			case "checkbox":
-			case "checkboxradio":
-				var $checkbox = $("<div class='" + cls.CLS_LISTITEM_CHK_ICON + "'></div>");
-				$checkbox.appendTo(self.$designItem);
-				self.$checkbox = $checkbox;
-				break;
+			if ($designItem.length == 0) {
+				var designItem = "<div class='" + cls.CLS_LISTITEM_ITEM + ' ' + cls.CLS_LISTITEM_ITEM_INDEXABLE + ' ' + cls.CLS_THEME + ' ' + cls.CLS_LISTITEM_ITEM_UP_DESIGN + "'></div>";
+				var $children = $el.children("*");
+				if ($children.length) {
+					$children.wrapAll(designItem);
+					$designItem = $el.children("." + cls.CLS_LISTITEM_ITEM);
+					self.$designItem = $designItem;
+				}
+				else {
+					$el.append(designItem);
+					self.$designItem = $el.find("." + cls.CLS_LISTITEM_ITEM);
+				}
+			}
+			self.$designItem.attr('waper_focus', 'false').attr('waper_savechildrenonly', 'true');
+			if (self.$designItem.children().length == 0) {
+				var $c = $("<div class='" + cls.CLS_DESIGN_DEFAULT + " " + cls.CLS_LISTITEM_ITEM_INDEXABLE + "' waper_focus='false' waper_dontsave='true' style='font-family:Tahoma; font-size:12px;' >" + $el.jqmData("role").slice(3) + "</div>");
+				self.$designItem.append($c);
+			}
+			else {
+				self.$designItem.children("." + cls.CLS_DESIGN_DEFAULT).remove();
+				switch (o.type) {
+				case "link":
+					var $link = $("<div class='" + cls.CLS_LISTITEM_LINK_ICON + "'></div>");
+					$link.appendTo(self.$designItem);
+					break;
+				case "checkbox":
+				case "checkboxradio":
+					var $checkbox = $("<div class='" + cls.CLS_LISTITEM_CHK_ICON + "'></div>");
+					$checkbox.appendTo(self.$designItem);
+					self.$checkbox = $checkbox;
+					break;
+				}
 			}
 		},
 		update: function(items, index) {
@@ -11808,83 +11340,27 @@ if (window.jQuery)(function($) {
 				cls = this.classes;
 			return $el.find('.' + cls.CLS_LISTITEM_ITEM_INDEXABLE).length;
 		},
-		_attachEvent: function() {
+		_empty: function() {
 			var $el = this.element,
 				self = this,
 				o = this.options,
 				cls = this.classes;
-			$el.find('.' + cls.CLS_LISTITEM_ITEM).live({
-				'swipeleft': function(e) {
-					if (o.type == "none") {
-						return;
-					}
-					var index = $el.find('.' + cls.CLS_LISTITEM_ITEM_INDEXABLE).index($(this));
-					if (self.enable(index)) {
-						$el.trigger("ev_swipeleft", [self, index]);
-						e.stopPropagation();
-					}
-				},
-				'swiperight': function(e) {
-					if (o.type == "none") {
-						return;
-					}
-					var index = $el.find('.' + cls.CLS_LISTITEM_ITEM_INDEXABLE).index($(this));
-					if (self.enable(index)) {
-						$el.trigger("ev_swiperight", [self, index]);
-						e.stopPropagation();
-					}
-				},
-				'vmousedown': function(e) {
-					self._prevmousedown();
-					if (o.type == "none") {
-						return;
-					}
-					var index = $el.find('.' + cls.CLS_LISTITEM_ITEM_INDEXABLE).index($(this));
-					if (self.enable(index) == true) {
-						$(this).removeClass(cls.CLS_LISTITEM_ITEM_UP).addClass(cls.CLS_LISTITEM_ITEM_DOWN);
-						e.stopPropagation();
-					}
-					// android bug를 막기위해 추가
-					if (e.target.nodeName.toLowerCase() != "input") {
-						e.preventDefault();
-					}
-				},
-				'vmouseup vmousecancel': function(e) {
-					if (self._prevmouseup(e)) return;
-					if (o.type == "none") {
-						return;
-					}
-					var index = $el.find('.' + cls.CLS_LISTITEM_ITEM_INDEXABLE).index($(this));
-					if (self.enable(index) == true) {
-						$(this).removeClass(cls.CLS_LISTITEM_ITEM_DOWN).addClass(cls.CLS_LISTITEM_ITEM_UP);
-						e.stopPropagation();
-					}
-				},
-				'vclick': function(e) {
-					if (self._prevclick()) return;
-					if (o.type == "none") {
-						return;
-					}
-					var index = $el.find('.' + cls.CLS_LISTITEM_ITEM_INDEXABLE).index($(this));
-					if (self.enable(index) && self._getAncestorEnable()) {
-						if (self.scrollviewDragged()) {
-							return;
-						}
-						if (o.type == "checkbox") {
-							self.toggle(index);
-							$el.trigger("ev_change", [self, self.checked(index), index]);
-						}
-						else if (o.type == "radio" || o.type == "checkboxradio") {
-							if (self.checked(index) == false) {
-								self.checked(index, true);
-							}
-							$el.trigger("ev_change", [self, true, index]);
-						}
-						else {
-							$el.trigger("ev_click", [self, index]);
-						}
-						e.stopPropagation();
-					}
+			// 하위 element 제거
+			$el.find('.' + cls.CLS_LISTITEM_LINK_ICON + ", ." + cls.CLS_LISTITEM_CHK_ICON).remove();
+		},
+		_designRefresh: function() {
+			var $el = this.element,
+				self = this,
+				o = this.options,
+				cls = this.classes;
+			$.davinci.dvcBase.prototype._designRefresh.call(this);
+			// 하위로 내려가면서 changeTheme()를 호출한다.
+			$el.find("div:jqmData(role^='dvc')").each(function() {
+				var $this = $(this);
+				var role = $this.jqmData("role");
+				var instance = $this.data(role);
+				if (instance) {
+					instance._changeTheme();
 				}
 			});
 		},
@@ -12019,6 +11495,25 @@ if (window.jQuery)(function($) {
 				self = this,
 				o = this.options,
 				cls = this.classes;
+			$el.addClass("dvc-collapseview dvc-collapseview-corner-bottom");
+			$el.append($('<div  waper_focus="false" waper_dontsave="true" class="dvc-collapseview-bottom">Collapseview</div>'));
+		},
+		_empty: function() {},
+		_designRefresh: function() {
+			var $el = this.element,
+				self = this,
+				o = this.options,
+				cls = this.classes;
+			$.davinci.dvcBase.prototype._designRefresh.call(this);
+			// 하위로 내려가면서 changeTheme()를 호출한다.
+			$el.find("div:jqmData(role^='dvc')").each(function() {
+				var $this = $(this);
+				var role = $this.jqmData("role");
+				var instance = $this.data(role);
+				if (instance) {
+					instance._changeTheme();
+				}
+			});
 		},
 		collapsed: function(c, duration, complete) {
 			var $el = this.element,
@@ -12101,6 +11596,7 @@ if (window.jQuery)(function($) {
 				self = this,
 				o = this.options,
 				cls = this.classes;
+			self._designDefault($el.jqmData("role").slice(3));
 		},
 		_init: function() {
 			var $el = this.element,
@@ -12175,6 +11671,39 @@ if (window.jQuery)(function($) {
 				self = this,
 				o = this.options,
 				cls = this.classes;
+			o.itemCount = parseInt($el.attr("data-item-count"), 10) || 2;
+			var $items = $el.find(".dvc-grid-item");
+			var curItemCount = $items.length;
+			if (o.itemCount < curItemCount) {
+				var removeCount = curItemCount - o.itemCount;
+				for (i = curItemCount; i > o.itemCount; i--) {
+					$items.eq(i - 1).remove();
+				}
+			}
+			else if (o.itemCount > curItemCount) {
+				var addCount = o.itemCount - curItemCount;
+				var $item = $('<div data-role="GridItem" class="dvc-grid-item"></div>');
+				for (i = 0; i < addCount; i++) {
+					$item.clone().appendTo($el);
+				}
+			}
+		},
+		_empty: function() {},
+		_designRefresh: function() {
+			var $el = this.element,
+				self = this,
+				o = this.options,
+				cls = this.classes;
+			$.davinci.dvcBase.prototype._designRefresh.call(this);
+			// 하위로 내려가면서 changeTheme()를 호출한다.
+			$el.find("div:jqmData(role^='dvc')").each(function() {
+				var $this = $(this);
+				var role = $this.jqmData("role");
+				var instance = $this.data(role);
+				if (instance) {
+					instance._changeTheme();
+				}
+			});
 		},
 		refresh: function() {
 			var $el = this.element,
@@ -12204,6 +11733,7 @@ if (window.jQuery)(function($) {
 	});
 })(jQuery);
 (function($, undefined) {
+	var _selftree = null;
 	$.widget("davinci.dvcTreeview", $.davinci.dvcBase, {
 		options: {
 			data: null,
@@ -12237,6 +11767,7 @@ if (window.jQuery)(function($) {
 				o = this.options,
 				cls = this.classes;
 			var $treenodebody = $("<div class='" + cls.CLS_TREEVIEW_NODE_BODY + "' style='position:relative;'></div>");
+			$treenodebody.attr('waper_focus', 'false').attr('waper_dontsave', 'true');
 			$el.prepend($treenodebody);
 		},
 		refresh: function() {
@@ -12245,110 +11776,47 @@ if (window.jQuery)(function($) {
 				o = this.options,
 				cls = this.classes;
 			$.davinci.dvcBase.prototype.refresh.call(this);
+			_selftree = self;
+			setTimeout(self._drawDesignTreeview, 10);
 			return this;
 		},
-		_attachEvent: function() {
-			var $el = this.element,
-				self = this,
-				o = this.options,
-				cls = this.classes;
-			$el.find('.' + cls.CLS_TREEVIEW_NODE_NAME_BACK).live({
-				'vclick': function(e, ui) {
-					if (self.scrollview && self.scrollview._didDrag) {
-						return false;
-					}
-					var target = $(e.currentTarget);
-					var parent = target.parent();
-					var beforeSelected = $('.' + cls.CLS_TREEVIEW_SELECTED_NODE, $el);
-					if (beforeSelected.length) {
-						//beforeSelected.parent().parent() : li				
-						self.getItems(beforeSelected.parent().parent().attr("path")).selected = false;
-						beforeSelected.removeClass(cls.CLS_TREEVIEW_SELECTED_NODE);
-					}
-					target.addClass(cls.CLS_TREEVIEW_SELECTED_NODE);
-					//(ev_click, [id, item, path])
-					var path = parent.parent().attr("path");
-					self.getItems(path).selected = true;
-					$el.trigger("ev_click", [self, self.getItems(path), path]);
-					return false;
-				} //vclick		
+		_drawDesignTreeview: function() {
+			var $el = _selftree.element,
+				self = _selftree;
+			//o.data = $el.attr("data-data") || null;
+			//o.treeType = $el.attr("data-tree-type") || "basic";
+			_selftree.removeAll();
+			var childnode = [];
+			childnode.push({
+				"id": "001",
+				"text": "node 1",
+				"isexpand": true,
+				"hasChildren": true,
+				"childnodes": [{
+					"id": "002",
+					"text": "node 1-1"
+				}]
 			});
-			$el.find('.' + cls.CLS_TREEVIEW_LINE_GROUP).live({
-				'vclick': function(e, ui) {
-					var target = $(e.currentTarget.parentNode); //dvc-node-background			
-					var openCloseIcon = $(".dvc-treeview-open-icon", target);
-					var isOpen = true;
-					if (!openCloseIcon.length) {
-						$(".dvc-treeview-close-icon", target).removeClass("dvc-treeview-close-icon").addClass("dvc-treeview-open-icon");
-						//선택된 하위요소 show (target.parent():상위 li)
-						target.parent().children("ul").css("display", "block");
-					}
-					else {
-						openCloseIcon.removeClass("dvc-treeview-open-icon").addClass("dvc-treeview-close-icon");
-						//선택된 하위요소 hidden (target.parent():상위 li)
-						target.parent().children("ul").css("display", "none");
-						isOpen = false;
-					}
-					//update itemData(isexpand value)
-					var path = target.parent().attr("path");
-					var itemData = self.getItems(path);
-					itemData.isexpand = isOpen;
-					//(ev_ecclick, [id, item, path])								
-					$el.trigger("ev_ecclick", [self, itemData, path]);
-					return false;
-				} //vclick
+			childnode.push({
+				"id": "010",
+				"text": "node 2"
 			});
-			$el.find(".dvc-treeview-expend-icon").live({
-				'vclick': function(e, ui) {
-					var target = e.currentTarget;
-					var parent = $(target).parent(); //div	
-					var isOpen = true;
-					if (!$(target).hasClass("dvc-treeview-open-icon")) {
-						$(target).removeClass("dvc-treeview-close-icon").addClass("dvc-treeview-open-icon");
-						//선택된 하위요소 show (parent.parent():상위 li)
-						parent.parent().children("ul").css("display", "block");
-					}
-					else {
-						$(target).removeClass("dvc-treeview-open-icon").addClass("dvc-treeview-close-icon");
-						//선택된 하위요소 hidden (parent.parent():상위 li)
-						parent.parent().children("ul").css("display", "none");
-						isOpen = false;
-					}
-					//update itemData(isexpand value)
-					var itemData = self.getItems(parent.parent().attr("path"));
-					itemData.isexpand = isOpen;
-					//(ev_ecclick, [id, item, path])				
-					$el.trigger("ev_ecclick", [self, itemData]);
-					return false;
-				} //vclick
+			var rootnode = [];
+			rootnode.push({
+				"id": "id1",
+				"text": "root",
+				"selected": "false",
+				"isexpand": true,
+				// childnode가 펼쳐져 있는 상태
+				"childnodes": childnode // childnode
 			});
-			$el.find(".dvc-treeview-ischeck-back").live({
-				"vmousedown": function(e) {
-					var target = $($(e.currentTarget).children().eq(0));
-					if (target.hasClass("dvc-treeview-check-up")) {
-						target.removeClass("dvc-treeview-check-up").addClass("dvc-treeview-check-down");
-					}
-					else {
-						target.removeClass("dvc-treeview-check-down").addClass("dvc-treeview-check-up");
-					}
-					return false;
-				},
-				'vclick': function(e, ui) {
-					var target = $($(e.currentTarget).children().eq(0));
-					var parent = target.parent().parent().parent(); //li
-					var isCheck = false; /* item-check/uncheck */
-					if (target.hasClass("dvc-treeview-checked")) {
-						isCheck = true;
-						target.removeClass("dvc-treeview-checked").removeClass("dvc-treeview-check-down").addClass("dvc-treeview-check-up");
-					}
-					else {
-						target.removeClass("dvc-treeview-check-down").addClass("dvc-treeview-checked dvc-treeview-check-up");
-					}
-					//(ev_change, [id, item, checkValue]) 
-					$el.trigger("ev_change", [self, self.getItems(parent.attr("path")), isCheck]);
-					return false;
-				} //vclick
-			});
+			if (_selftree.element.width() > 0) {
+				_selftree._drawTreeview(rootnode);
+				_selftree._addAttrDontSaveNDontFocus($el.find("*"));
+			}
+			else {
+				setTimeout(_selftree._drawDesignTreeview, 10);
+			}
 		},
 		setIconWidth: function(w) {
 			var self = this,
@@ -12388,7 +11856,7 @@ if (window.jQuery)(function($) {
 				self = this,
 				o = this.options,
 				cls = this.classes;
-			var iconWidth = o.iconWidth;
+			var iconWidth = 23;
 			var liClass = "";
 			var isChildren = false;
 			var hasChildClass = "dvc-treeview-nohaschild-icon";
@@ -12736,36 +12204,7 @@ if (window.jQuery)(function($) {
 				self = this,
 				o = this.options,
 				cls = this.classes;
-			$el.wrapInner("<div class='" + cls.CLS_PAGEBOX_ITEM + "'></div>");
-			self._initialize();
-		},
-		_attachEvent: function() {
-			var $el = this.element,
-				self = this,
-				o = this.options,
-				cls = this.classes;
-			if ($.davinci.getDeviceType() == "Desktop") {
-				$(window).bind("resize", function() {
-					var mode = $.event.special.orientationchange.orientation();
-					var $page = self.$activePage;
-					if ($page.length) {
-						var pageInstance = $page.data("page");
-						$page.trigger("ev_orientationchange", [pageInstance, mode]);
-					}
-				});
-			}
-			else {
-				$(window).bind("orientationchange", function() {
-					if ($.davinci.deviceReady) {
-						var mode = $.event.special.orientationchange.orientation();
-						var $page = self.$activePage;
-						if ($page.length) {
-							var pageInstance = $page.data("page");
-							$page.trigger("ev_orientationchange", [pageInstance, mode]);
-						}
-					}
-				});
-			}
+			self._designDefault($el.jqmData("role").slice(3));
 		},
 		// function _initialize()
 		// dvcPagebox 가 생성될 때에 초기화해주는 작업을 하는 함수로 최초 1회만 호출된다.
@@ -14081,11 +13520,6 @@ dataBindings.add("scrollto", {
 		// item의 하위에 type이 dvc로 시작하는 것을 모두 찾아서 new instance한다.
 		$page.find("div:jqmData(role^='dvc')").filter(function() {
 			//상위에 listitem가 있으면.. false;
-			if ($(this).jqmData("role") != "dvcListitem") {
-				if ($(this).closest(":jqmData(role='dvcListitem')").length > 0) {
-					return false;
-				}
-			}
 			return true;
 		}).each(function() {
 			var self = this,

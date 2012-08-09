@@ -1,0 +1,150 @@
+#Layoutview_0 {
+	height: 60px;
+}
+#Scrollview_0 {
+	left: 0px;
+	right: 0px;
+	top: 60px;
+	bottom: 0px;
+}
+#Listitem_0 .dvc-listitem-item-indexable {
+	min-height: 45px;
+}
+#Listitem_0 .dvc-listitem-item-indexable div[subid=lblName] {
+	left: 10px;
+	height: 45px;
+	top: 0px;
+	right: 10px;
+	line-height: 45px;
+}
+#ComboHeader_0 {
+	height: 45px;
+	font-weight: bold;
+	background-color: transparent;
+}
+#lblHeader {
+	left: 9px;
+	top: 13px;
+	height: 20px;
+	width: 66px;
+}
+#btnHOk {
+	right: 10px;
+	top: 7px;
+	height: 29px;
+	min-width: 40px;
+}
+#Button_0 {
+	top: 9px;
+	height: 32px;
+	min-width: 60px;
+	right: 80px;
+}
+#Button_1 {
+	top: 9px;
+	height: 32px;
+	min-width: 60px;
+	right: 10px;
+}
+#Label_0 {
+	left: 80px;
+	top: 13px;
+	height: 20px;
+	right: 80px;
+}
+#Label_1 {
+	left: 16px;
+	top: 14px;
+	width: 154px;
+	height: 20px;
+}
+#obj_2 {
+	top: 2px;
+}
+#Label_2 {
+	left: 13px;
+	top: 13px;
+	width: 66px;
+	height: 20px;
+}
+#layvEmailSetting {
+	height: 40px;
+}
+#Label_3 {
+	left: 8px;
+	top: 0px;
+	width: 60px;
+	bottom: 0px;
+	line-height: 40px;
+}
+#layvBapgapSetting {
+	height: 40px;
+}
+#Label_4 {
+	left: 10px;
+	top: 0px;
+	bottom: 0px;
+	line-height: 40px;
+}
+#Textfield_0 {
+	left: 95px;
+	top: 5px;
+	height: 30px;
+	right: 10px;
+}
+#Button_2 {
+	top: 7px;
+	height: 32px;
+	min-width: 40px;
+	right: 10px;
+}
+#Textfield_1 {
+	left: 95px;
+	top: 5px;
+	height: 30px;
+	right: 10px;
+}
+#Button_3 {
+	top: 7px;
+	height: 32px;
+	right: 55px;
+}
+#lstNameSetting .dvc-listitem-item-indexable {
+	min-height: 40px;
+}
+#Scrollview_1 {
+	left: 1px;
+	right: 0px;
+	top: 122px;
+	bottom: 0px;
+}
+#layvNameSetting {
+	height: 40px;
+}
+#Button_4 {
+	top: 4px;
+	height: 32px;
+	right: 10px;
+}
+#Label_5 {
+	left: 11px;
+	top: 12px;
+	width: 100px;
+	height: 20px;
+}
+#Textfield_2 {
+	left: 118px;
+	top: 5px;
+	width: 136px;
+	height: 30px;
+}
+#Layoutview_2 {
+	height: 40px;
+}
+#lstNameSetting .dvc-listitem-item-indexable div[subid=lblName] {
+	top: 0px;
+	bottom: 0px;
+	right: 10px;
+	line-height: 40px;
+	left: 10px;
+}
