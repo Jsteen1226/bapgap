@@ -152,6 +152,7 @@ function pgInput_onpageshow(e, obj) {
 		var checkedCount = 0;
 		var count = settingValue.items.length;
 		var lstNameInput = $.davinci.getInstance("lstNameInput");
+		var txfRealMoney = $.davinci.getInstance("txfRealMoney");
 		
 		var names = settingValue.items;
 		lstNameInput.items(names);
@@ -166,7 +167,9 @@ function pgInput_onpageshow(e, obj) {
 						checkedCount++;
 					}
 				}
-			}			
+			}
+			
+			txfRealMoney.text(todayStorage.realMoney);
 		}
 		
 		var lblTotal = $.davinci.getLabel("ftInput", "lblTotal");
@@ -211,6 +214,8 @@ function btnHOk_onclick(e, obj, index) {
 				todayStorage.names.push(lstNameInput.items()[i]);
 			}
 		}
+		
+		todayStorage.realMoney = $.davinci.getTextfield("txfRealMoney").text();
 		
 		setObject("Today" + $.pgInput.today, todayStorage);
 	}

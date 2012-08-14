@@ -1,7 +1,7 @@
 #Scrollview_0 {
 	left: 0px;
 	right: 0px;
-	top: 60px;
+	top: 40px;
 	bottom: 0px;
 }
 #lstNameInput .dvc-listitem-item-indexable {
@@ -223,4 +223,20 @@
 }
 #Button_4.dvc-button-down .dvc-button-icon {
 	content: url('images/add.png');
+}
+#Label_1 .dvc-label-text {
+	font-weight: normal;
+	color: rgb(51, 102, 255);
+}
+#Label_9 {
+	left: 12px;
+	top: 11px;
+	width: 93px;
+	height: 20px;
+}
+#txfRealMoney {
+	left: 126px;
+	top: 5px;
+	width: 101px;
+	height: 30px;
 }
