@@ -7,9 +7,9 @@
 				DaVinci Basic Template
 			</title>
 			<link rel="stylesheet" href="davinci/system/framework/jquery.dvc.css">
-			<link rel="stylesheet" href="main.css">
 			<link rel="stylesheet" href="animations.css">
 			<link rel="stylesheet" href="MediaDefault.css">
+			<link rel="stylesheet" href="main.css">
 			<script type="text/javascript" src="davinci/system/device/device.dvc.js">
 			</script>
 			<script type="text/javascript" src="davinci/system/framework/knockout.js">
@@ -22,40 +22,46 @@
 			</script>
 		</head>
 		<body>
-			<div data-role="page" id="pgMain" ev-onpageinit="pgMain_onpageinit" ev-onpageshow="pgMain_onpageshow">
-				<div data-role="dvcHeader" id="hdMain" data-theme="a">
+			<div data-role="page" id="pgMain">
+				<div data-role="dvcContent" id="obj_5">
+				</div>
+				<div data-role="dvcHeader" id="hdMain">
+					<div data-role="dvcLabel" id="Label_7" data-text="밥값 계산" data-text-align="center">
+					</div>
+				</div>
+				<div data-role="dvcFooter" id="ftMain">
+					<div data-role="dvcButton" id="Button_0" data-text="설정" subid="btnSetting" ev-onclick="Button_0_onclick">
+					</div>
+					<div data-role="dvcButton" id="Button_1" data-text="조회" subid="btnSearch" ev-onclick="Button_1_onclick">
+					</div>
+					<div data-role="dvcButton" id="btnInput" data-text="입력" ev-onclick="btnInput_onclick">
+					</div>
+				</div>
+			</div>
+			<div data-role="page" id="pgInput" ev-onpageinit="pgInput_onpageinit" ev-onpageshow="pgInput_onpageshow" ev-onpagebeforeshow="pgInput_onpagebeforeshow">
+				<div data-role="dvcHeader" id="hdInput" data-theme="a">
 					<div data-role="dvcLabel" data-text-align="center" data-text="[입력]" id="lblHeader" subid="lblTitle">
 					</div>
-					<div data-role="dvcButton" data-type="ok" data-text="저장" id="btnHOk" subid="btnSave">
+					<div data-role="dvcButton" id="Button_6" data-text="CANCEL" data-type="cancel" ev-onclick="Button_6_onclick">
 					</div>
-					<div data-role="dvcLabel" id="Label_0" data-text="2012-08-09" subid="lblTodayDate" data-text-align="center">
+					<div data-role="dvcButton" data-type="ok" data-text="OK" id="btnHOk" subid="btnOK" ev-onclick="btnHOk_onclick">
+					</div>
+					<div data-role="dvcLabel" id="Label_0" data-text="" subid="lblTodayDate" data-text-align="center">
 					</div>
 				</div>
 				<div data-role="dvcContent" id="obj_0">
 					<div data-role="dvcLayoutview" id="Layoutview_0">
 					</div>
 					<div data-role="dvcScrollview" id="Scrollview_0">
-						<div data-role="dvcListitem" id="Listitem_0" data-type="checkbox">
+						<div data-role="dvcListitem" id="lstNameInput" data-type="checkbox" ev-onchange="lstNameInput_onchange">
 							<div data-role="dvcLabel" id="label1_1" data-text="Name" subid="lblName">
 							</div>
-							<div class="dvc-listitem-checkbox-icon" id="obj_3" subid="sub_0">
-							</div>
-							<div class="dvc-listitem-checkbox-icon" id="obj_4" subid="sub_1">
-							</div>
-							<div class="dvc-listitem-checkbox-icon" id="obj_5" subid="sub_2">
-							</div>
-							<div class="dvc-listitem-checkbox-icon" id="obj_6" subid="sub_3">
-							</div>
-							<div class="dvc-listitem-checkbox-icon" id="obj_7" subid="sub_4">
+							<div class="dvc-listitem-checkbox-icon">
 							</div>
 						</div>
 					</div>
 				</div>
-				<div data-role="dvcFooter" id="ftMain">
-					<div data-role="dvcButton" id="Button_0" data-text="설정" subid="btnSetting" data-theme="a" ev-onclick="Button_0_onclick">
-					</div>
-					<div data-role="dvcButton" id="Button_1" data-text="조회" subid="btnSearch" ev-onclick="Button_1_onclick">
-					</div>
+				<div data-role="dvcFooter" id="ftInput">
 					<div data-role="dvcLabel" id="Label_1" data-text="0명: 0원" subid="lblTotal">
 					</div>
 				</div>
@@ -75,16 +81,18 @@
 						</div>
 					</div>
 					<div data-role="dvcLayoutview" id="layvNameSetting">
-						<div data-role="dvcButton" id="Button_4" data-text="추가" subid="btnAddName" ev-onclick="Button_4_onclick">
+						<div data-role="dvcButton" id="Button_4" subid="btnAddName" ev-onclick="Button_4_onclick">
 						</div>
 						<div data-role="dvcLabel" id="Label_5" data-text="등록할 이름 :">
 						</div>
-						<div data-role="dvcTextfield" id="Textfield_2" data-input-type="text" subid="txfName">
+						<div data-role="dvcTextfield" id="Textfield_2" data-input-type="text" subid="txfName" ev-onkeyup="Textfield_2_onkeyup">
 						</div>
 					</div>
 					<div data-role="dvcScrollview" id="Scrollview_1">
 						<div data-role="dvcListitem" id="lstNameSetting">
 							<div data-role="dvcLabel" id="Label_6" data-text="Name" subid="lblName">
+							</div>
+							<div data-role="dvcButton" id="Button_8" subid="btnDelete" ev-onclick="Button_8_onclick">
 							</div>
 						</div>
 					</div>
@@ -95,6 +103,28 @@
 					<div data-role="dvcButton" id="Button_2" data-text="OK" data-type="ok" subid="btnOK" ev-onclick="Button_2_onclick">
 					</div>
 					<div data-role="dvcButton" id="Button_3" data-text="CANCEL" data-type="cancel" ev-onclick="Button_3_onclick">
+					</div>
+				</div>
+			</div>
+			<div data-role="page" id="pgDatePicker" ev-onpageinit="pgDatePicker_onpageinit" ev-onpageshow="pgDatePicker_onpageshow">
+				<div data-role="dvcHeader" id="Header_0">
+					<div data-role="dvcButton" id="Button_5" data-text="CANCEL" data-type="cancel" ev-onclick="Button_5_onclick">
+					</div>
+					<div data-role="dvcButton" id="Button_7" data-text="OK" data-type="ok" ev-onclick="Button_7_onclick">
+					</div>
+					<div data-role="dvcLabel" id="Label_8" data-text="날짜 선택" data-text-align="center">
+					</div>
+				</div>
+				<div data-role="dvcContent" id="obj_3">
+					<div data-role="dvcLayoutview" id="Layoutview_1">
+						<div data-role="dvcLayoutview" class="dvc-base-center" id="Layoutview_2" style="width:320px;">
+							<div data-role="dvcPicker" data-type="right" id="pkrYear" ev-onchange="pkrYear_onchange">
+							</div>
+							<div data-role="dvcPicker" data-type="both" id="pkrMonth" ev-onchange="pkrMonth_onchange">
+							</div>
+							<div data-role="dvcPicker" data-type="left" id="pkrDate" ev-onchange="pkrDate_onchange">
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>

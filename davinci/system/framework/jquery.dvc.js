@@ -1,7 +1,7 @@
 ﻿/******************************************
  * DaVinci UI Framework
  * 
- * js Revision : 2055
+ * js Revision : 2112
  * 
  ******************************************/
 /*
@@ -7206,11 +7206,12 @@ if (window.jQuery)(function($) {
 			var $el = this.element,
 				self = this,
 				o = self.options;
+			// widget에 화면에 보여지기 전에 처리할 수 있는 코드
+			self._initWidget();
+			self._appendChildElements();
+			// widget이 화면에 보여진 후에 처리할 수 있는 코드
 			var widgetCreate = function() {
-				// 실제 create시에 호출되는 widget 초기화 function
 				var widgetInit = function() {
-					self._initWidget();
-					self._appendChildElements();
 					self._initVars();
 					self._attachEvent();
 					self.refresh();
@@ -7222,7 +7223,7 @@ if (window.jQuery)(function($) {
 				}
 				else {
 					// widget이 속한 page가 active상태가 아니면, pageshow가 발생할 때 create한다.
-					$parentPage.one("pageshow", function() {
+					$parentPage.one("ev_pageshow", function() {
 						widgetInit();
 					});
 				}
@@ -8028,7 +8029,8 @@ if (window.jQuery)(function($) {
 			CLS_LABEL_DOWN: "dvc-label-down",
 			CLS_LABEL_TEXT: "dvc-label-text",
 			CLS_LABEL_MULTIPLE: "dvc-label-multiple",
-			CLS_LABEL_SINGLE: "dvc-label-single"
+			CLS_LABEL_SINGLE: "dvc-label-single",
+			CLS_LABEL_DEFAULT_DESIGN_TEXT: "dvc-label-default-design-text"
 		},
 		_initWidget: function() {
 			var $el = this.element,
@@ -8056,7 +8058,7 @@ if (window.jQuery)(function($) {
 				self = this,
 				o = this.options,
 				cls = this.classes;
-			self.$labelText = $("<div cLass='" + cls.CLS_LABEL_TEXT + "'></div>").appendTo($el);
+			self.$labelText = $("<div class='" + cls.CLS_LABEL_TEXT + "'></div>").appendTo($el);
 		},
 		refresh: function() {
 			var $el = this.element,
@@ -8461,14 +8463,10 @@ if (window.jQuery)(function($) {
 			$el.append($handle);
 			$el.append($onImage);
 			$el.append($offImage);
+			this.$text = $text;
 			this.$onText = $onText;
 			this.$offText = $offText;
 			this.$handle = $handle;
-			this.handleLeftWidth = $handle.find('.' + cls.CLS_SWITCH_HANDLE_LEFT).width();
-			$text.css({
-				"left": this.handleLeftWidth,
-				"right": this.handleLeftWidth
-			});
 			this.$onImage = $onImage;
 			this.$offImage = $offImage;
 		},
@@ -8562,6 +8560,8 @@ if (window.jQuery)(function($) {
 			}
 			var animation = function() {
 				start = (plus) ? start + 10 : start - 10;
+				start = Math.min(self.maxRange, start);
+				start = Math.max(0, start);
 				self._draw(start);
 				if (plus) {
 					if (start < self.maxRange) {
@@ -8630,7 +8630,13 @@ if (window.jQuery)(function($) {
 		_initVars: function() {
 			var $el = this.element,
 				self = this,
-				o = this.options;
+				o = this.options,
+				cls = this.classes;
+			self.handleLeftWidth = self.$handle.find('.' + cls.CLS_SWITCH_HANDLE_LEFT).width();
+			self.$text.css({
+				"left": self.handleLeftWidth,
+				"right": self.handleLeftWidth
+			});
 			// checkedLabel이나, uncheckedLabel의 textWidth에 따라 switch의 width를 결정한다.
 			var onTextWidth = self.$onText.outerWidth(true);
 			var offTextWidth = self.$offText.outerWidth(true);
@@ -9229,6 +9235,8 @@ if (window.jQuery)(function($) {
 			}
 			cls.CLS_THEME = cls.CLS_WIDGET + "-" + o.theme;
 			$el.addClass(cls.CLS_WIDGET + ' ' + cls.CLS_HEADER_UITITLE + ' ' + cls.CLS_THEME);
+			// content에 붙이는 계산이 보이기 전에 되어야 해서 미리 호출함.
+			self.refresh();
 		},
 		_attachEvent: function() {
 			var $el = this.element,
@@ -9279,6 +9287,8 @@ if (window.jQuery)(function($) {
 			}
 			cls.CLS_THEME = cls.CLS_WIDGET + "-" + o.theme;
 			$el.addClass(cls.CLS_WIDGET + ' ' + cls.CLS_THEME);
+			// content에 붙이는 계산이 보이기 전에 되어야 해서 미리 호출함.
+			self.refresh();
 		},
 		_attachEvent: function() {
 			var $el = this.element,
@@ -9333,7 +9343,7 @@ if (window.jQuery)(function($) {
 			showScrollBars: true,
 			pagingEnabled: false,
 			directionLock: true,
-			delayedClickSelector: ".dvc-treeview-node-background *, textarea, input, .dvc-listitem-item, .dvc-layoutview, .dvc-label, .dvc-button, .dvc-imagebutton, .dvc-switch, .dvc-radio, .dvc-checkbox, .dvc-slider",
+			delayedClickSelector: ".dvc-treeview-node-background *, textarea, input, .dvc-listitem-item, .dvc-layoutview, .dvc-label, .dvc-button, .dvc-imagebutton, .dvc-switch, .dvc-radio, .dvc-checkbox, .dvc-slider, .dvc-video-poster, video",
 			delayedClickEnabled: true,
 			bounceOff: false,
 			scrollBodyWidth: 0,
@@ -9515,7 +9525,7 @@ if (window.jQuery)(function($) {
 			}
 		},
 		_optimizeChangeVisiblility: function(posY) {
-			if (!this.isOptimization) {
+			if (!this.isOptimization || !this.listLen) {
 				return;
 			}
 			var tempTopIndex = this.topIndex;
@@ -10500,8 +10510,7 @@ if (window.jQuery)(function($) {
 				o = this.options,
 				cls = this.classes;
 			$.davinci.dvcScrollview.prototype._initVars.call(this);
-			this._oldIndex = -1;
-			this.itemHeight = 0;
+			this._index = -1;
 		},
 		_appendChildElements: function() {
 			var $el = this.element,
@@ -10567,33 +10576,64 @@ if (window.jQuery)(function($) {
 				this._pixelCorrection(y);
 			}
 		},
-		add: function(html) {
-			var $ul = this.element.find("ul");
-			$(html).appendTo($ul);
-			if (!this.itemHeight) {
-				var $li = $ul.find("li");
-				this.itemHeight = $li.eq(0).height();
+		items: function(items) {
+			var $el = this.element,
+				self = this,
+				o = this.options,
+				cls = this.classes;
+			// 보여지기 전에 items가 호출되면, height계산이 잘못되는 문제가 존재함.
+			// 이 때문에 차후에는 
+			// 1. 보여진 후에 초기화 할 것 정리
+			// 2. 보여진 후에 초기화 후 widgetshow(가칭) event trigger 추가
+			// 3. method 호출시 보여진 후에 동작해야 할 것은 Console로 경고처리하고 event 받은 후 method 호출하도록 가이드하도록 수정해야함.
+			if (arguments[0] != undefined) {
+				var $ul = this.element.find("ul");
+				if (items.constructor == String) {
+					// items가 String이면, 
+					$(items).appendTo($ul);
+					this._items = [];
+					$ul.children().each(function() {
+						self._items.push(this.innerHTML);
+					});
+				}
+				else if (items.constructor == Array) {
+					// items가 String array면,
+					var li = [];
+					this._items = items;
+					for (var i = 0; i < items.length; i++) {
+						li.push("<li>" + items[i] + "</li>");
+					}
+					$ul.append(li.join(""));
+				}
+				else {
+					console.log("error");
+					return this;
+				}
+				if (!this.itemHeight) {
+					var $child = $ul.children().eq(0);
+					this.itemHeight = $child.height();
+				}
+				this.refresh();
+				return this;
 			}
-			this.refresh();
-			return this;
+			else {
+				return this._items;
+			}
+		},
+		selectedItem: function() {
+			return this._items[this._index];
 		},
 		clear: function() {
 			var $ul = this.element.find("ul");
 			$ul.children().remove();
 			this.scrollTo(0, 0);
 			this.itemHeight = 0;
+			this._items = [];
 			return this;
 		},
 		getCount: function() {
-			if (!this.itemHeight) return -1;
-			var itemHeight = this.itemHeight;
-			var o = this.options;
-			var $ul = this.element.find("ul");
-			var count = $ul.height() / itemHeight;
-			if (!count) {
-				count = 0;
-			}
-			return count;
+			if (!this._items) return -1;
+			return this._items.length;
 		},
 		_handleDragStop: function(e) {
 			var l = this._lastMove;
@@ -10665,14 +10705,19 @@ if (window.jQuery)(function($) {
 			if (this.getScrollPosition().y == y) {
 				// drag하지 않고 클릭만 했을 경우
 				if (e != undefined) {
-					var offsetTop = 0;
-					var divT = $el[0];
-					while (divT.offsetParent.nodeName != "BODY") {
-						offsetTop += divT.offsetTop;
-						divT = divT.offsetParent;
+					var el = $el[0],
+						offsetTop = 0;
+					while (el.offsetParent.nodeName != "BODY") {
+						offsetTop += el.offsetTop;
+						el = el.offsetParent;
 					}
-					var offsetY = (this._lastY - offsetTop);
-					var add = Math.floor((offsetY / itemHeight) - 2);
+					// popup이면...
+					if (/dvc-popup/.test(el.className)) {
+						offsetTop += el.offsetTop;
+					}
+					var borderTopWidth = parseInt(this.$pickerFrameBase.css("border-top-width"), 10);;
+					var offsetY = (this._lastY - offsetTop) - borderTopWidth;
+					var add = Math.floor(offsetY / itemHeight) - 1;
 					index += add;
 					var count = this.getCount();
 					if (index < 0) {
@@ -10682,44 +10727,33 @@ if (window.jQuery)(function($) {
 						index = count - 1;
 					}
 					y = (index * itemHeight);
-					this.scrollTo(0, y, o.snapbackDuration);
-					if (index != this._oldIndex) {
-						$el.trigger("ev_change", [this, index]);
-						this._oldIndex = index;
-					}
+					this._index = index;
+					this.scrollTo(0, y, o.snapbackDuration);					
+					$el.trigger("ev_change", [this, index]);
 				}
 				else {
+					this._index = index;
 					this.scrollTo(0, y, o.overshootDuration);
-					if (index != this._oldIndex) {
-						$el.trigger("ev_change", [this, index]);
-						this._oldIndex = index;
-					}
+					$el.trigger("ev_change", [this, index]);
 				}
 			}
 			else {
+				this._index = index;
 				this.scrollTo(0, y, o.overshootDuration);
-				if (index != this._oldIndex) {
-					$el.trigger("ev_change", [this, index]);
-					this._oldIndex = index;
-				}
+				$el.trigger("ev_change", [this, index]);
 			}
 		},
 		getIndex: function() {
-			if (!this.itemHeight) return -1;
-			var itemHeight = this.itemHeight;
-			var y = -this._sy;
-			var index = parseInt(y / itemHeight);
-			var mod = y % itemHeight;
-			if (mod > (itemHeight / 2)) {
-				index++;
-			}
-			return index;
+			return this._index;
 		},
 		setIndex: function(index) {
 			if (!this.itemHeight) return;
 			var itemHeight = this.itemHeight;
 			var y = -(index * itemHeight);
 			this.scrollTo(0, y, 0);
+			index = Math.max(index, 0);
+			index = Math.min(index, this._items.length);
+			this._index = index;
 			return this;
 		}
 	});
@@ -10905,6 +10939,7 @@ if (window.jQuery)(function($) {
 				self = this,
 				o = this.options,
 				cls = this.classes;
+			$.davinci.dvcBase.prototype.refresh.call(this);
 			var totalPages;
 			var $carouselPage = this._$view.children('.' + cls.CLS_CAROUSEL_PAGE);
 			var pagesOuterWidth = maxWidthPage = 0;
@@ -13354,6 +13389,7 @@ if (window.jQuery)(function($) {
 			else {
 				this.jsonObject = jsonObjParam;
 			}
+			return this;
 		},
 		apply: function() {
 			var $el = this.element;
@@ -13372,11 +13408,8 @@ if (window.jQuery)(function($) {
 					});
 				}
 			}
-			var returnObj = {
-				result: "success",
-				datasource: this
-			};
-			$el.trigger("ev_complete", returnObj);
+			$el.trigger("ev_complete", this);
+			return this;
 		},
 		_create: function() {
 			var $el = this.element,
@@ -13429,20 +13462,17 @@ if (window.jQuery)(function($) {
 					message: "Received Data is empty."
 				});
 			}
-			var returnObj = {
-				result: "success",
-				datasource: this
-			};
-			var result = $el.triggerHandler("ev_load", returnObj);
+			this.data(recvData);
+			var result = $el.triggerHandler("ev_load", this);
 			// data() 를 이용해서 수정하거나, event에 따른 저장여부를 확인하여 data() 함수를 수행.
 			if (result !== undefined && !result) {
 				return;
 			}
-			this.data(returnObj.datasource.data() || recvData);
+			this.data(this.jsonObject);
 			if (!opt.autobind) {
 				return;
 			}
-			var isApply = $el.triggerHandler("ev_apply", returnObj);
+			var isApply = $el.triggerHandler("ev_apply", this);
 			if (isApply || isApply === undefined) {
 				this.apply();
 			}
@@ -13450,7 +13480,6 @@ if (window.jQuery)(function($) {
 		_error: function(error) {
 			var $el = this.element;
 			var returnObj = {
-				result: "error",
 				datasource: this,
 				error: error
 			};
@@ -13458,6 +13487,7 @@ if (window.jQuery)(function($) {
 		},
 		load: function() {
 			this._run();
+			return this;
 		},
 		store: function() {
 			var opt = this.options;
@@ -13467,22 +13497,26 @@ if (window.jQuery)(function($) {
 			else {
 				this.data(opt.value);
 			}
+			return this;
 		},
 		_run: function() {
-			var opt = this.options;
-			if (!opt.schedule && this._runSchedule !== null) {
+			var opt = this.options,
+				self = this;
+			if (opt.schedule === 0 && self._runSchedule !== undefined) {
 				// Stop Schedule !
-				clearInterval(this._runSchedule);
+				clearInterval(self._runSchedule);
+				self._runSchedule = undefined;
+				return;
 			}
 			if (this._isStorage() && opt.key !== undefined) { // Proxy type is Web Storage
 				this._storage();
-				if (opt.schedule && this._runSchedule === null) {
+				if (opt.schedule && self._runSchedule === undefined) {
 					this._startSchedule();
 				}
 			}
 			else if (this._isAjax() && opt.url !== undefined && opt.sourcetype !== undefined) {
 				this._request();
-				if (opt.schedule && this._runSchedule === null) {
+				if (opt.schedule && self._runSchedule === undefined) {
 					this._startSchedule();
 				}
 			}
@@ -13544,13 +13578,10 @@ if (window.jQuery)(function($) {
 							});
 						}
 						else {
-							this.webStorage.setItem(opt.key, opt.value);
+							this.webStorage.setItem(opt.key, JSON.stringify(opt.value));
 							// storage에 저장 후 data에 저장하고 datasource 객체를 이벤트 trigger 시킨다.
-							this.data(this.webStorage[opt.key]);
-							$el.trigger("ev_store", {
-								result: "success",
-								datasource: this
-							});
+							this.data(JSON.parse(this.webStorage[opt.key]));
+							$el.trigger("ev_store", this);
 						}
 					}
 				}
@@ -13581,7 +13612,7 @@ if (window.jQuery)(function($) {
 		_startSchedule: function() {
 			var opt = this.options,
 				self = this;
-			this._runSchedule = setInterval(function() {
+			self._runSchedule = setInterval(function() {
 				self._run();
 			}, opt.schedule);
 		},
@@ -13732,19 +13763,17 @@ if (window.jQuery)(function($) {
 							var field = $this.attr("data-field");
 							if (field) {
 								// cwdoh; extract field to components by '.'
-								var tokens = field.split(".");
-								var data = source;
-								for (var i = 0; i < tokens.length; i++) {
-									if (typeof data[tokens[i]]) {
-										data = data[tokens[i]];
-									}
-									else {
-										data = null;
-										break;
+								// cwdoh: supports computed field
+								try {
+									with(data[index]) {
+										result = eval(field);
 									}
 								}
+								catch (e) {
+									console.warn("dvcDataBinding caught unmatched field : " + field);
+								}
 								if (data) {
-									structure[$this.attr("subid")] = data;
+									structure[$this.attr("subid")] = result;
 								}
 							}
 						}
@@ -13812,7 +13841,7 @@ if (window.jQuery)(function($) {
 	//	issue : dvcHtmlView????
 	dataBindings.add("text", {
 		update: function(widget, valueAccessor) {
-			if (dvcBindings.utils.has(widget, "text")) {
+			if (dataBindings.has(widget, "text")) {
 				var value = ko.utils.unwrapObservable(valueAccessor());
 				widget.text(value);
 			}
@@ -14002,7 +14031,7 @@ dataBindings.add("scrollto", {
 						self.live(evtname, function(e, obj, param1, param2, param3) {
 							var ret = window[evtfunction](e, obj, param1, param2, param3);
 							// DataBinding에서 apply 이벤트 후에 사용자의 리턴 값을 받기 위해 추가.
-							if (evtname === "ev_load") {
+							if (evtname === "ev_load" || evtname === "ev_apply") {
 								return ret;
 							}
 							return false; // event bubbling이 되지 않도록 차단함.

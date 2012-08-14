@@ -1,16 +1,13 @@
-#Layoutview_0 {
-	height: 60px;
-}
 #Scrollview_0 {
 	left: 0px;
 	right: 0px;
 	top: 60px;
 	bottom: 0px;
 }
-#Listitem_0 .dvc-listitem-item-indexable {
+#lstNameInput .dvc-listitem-item-indexable {
 	min-height: 45px;
 }
-#Listitem_0 .dvc-listitem-item-indexable div[subid=lblName] {
+#lstNameInput .dvc-listitem-item-indexable div[subid=lblName] {
 	left: 10px;
 	height: 45px;
 	top: 0px;
@@ -31,31 +28,31 @@
 #btnHOk {
 	right: 10px;
 	top: 7px;
-	height: 29px;
+	height: 32px;
 	min-width: 40px;
 }
 #Button_0 {
 	top: 9px;
 	height: 32px;
-	min-width: 60px;
-	right: 80px;
+	min-width: 50px;
+	right: 70px;
 }
 #Button_1 {
-	top: 9px;
+	top: 8px;
 	height: 32px;
-	min-width: 60px;
+	min-width: 50px;
 	right: 10px;
 }
 #Label_0 {
 	left: 80px;
 	top: 13px;
 	height: 20px;
-	right: 80px;
+	right: 116px;
 }
 #Label_1 {
 	left: 16px;
 	top: 14px;
-	width: 154px;
+	width: 97px;
 	height: 20px;
 }
 #obj_2 {
@@ -138,13 +135,92 @@
 	width: 136px;
 	height: 30px;
 }
-#Layoutview_2 {
-	height: 40px;
-}
 #lstNameSetting .dvc-listitem-item-indexable div[subid=lblName] {
 	top: 0px;
 	bottom: 0px;
-	right: 10px;
+	right: 55px;
 	line-height: 40px;
 	left: 10px;
+}
+#btnInput {
+	top: 9px;
+	height: 32px;
+	right: 130px;
+	min-width: 50px;
+}
+#Label_7 {
+	left: 113px;
+	right: 113px;
+	top: 13px;
+	height: 20px;
+}
+#Button_6 {
+	top: 7px;
+	height: 32px;
+	right: 55px;
+}
+#Button_5 {
+	left: 10px;
+	top: 7px;
+	height: 32px;
+	min-width: 60px;
+}
+#Button_7 {
+	top: 7px;
+	height: 32px;
+	right: 10px;
+	min-width: 60px;
+}
+#Label_8 {
+	left: 109px;
+	top: 14px;
+	width: 100px;
+	height: 20px;
+}
+#Layoutview_0 {
+	height: 40px;
+}
+#Layoutview_1 {
+	height: 140px;
+}
+#Layoutview_2 {
+	height: 140px;
+}
+#pkrYear {
+	height: 100%;
+	width: 140px;
+	position: relative;
+	float: left;
+}
+#pkrMonth {
+	height: 100%;
+	width: 90px;
+	position: relative;
+	float: left;
+}
+#pkrDate {
+	height: 100%;
+	width: 90px;
+	position: relative;
+	float: left;
+}
+#lstNameSetting .dvc-listitem-item-indexable div[subid=btnDelete] {
+	top: 6px;
+	height: 29px;
+	right: 10px;
+}
+#lstNameSetting .dvc-listitem-item-indexable div[subid=btnDelete].dvc-imagebutton-up {
+	background-image: url('images/add.png');
+}
+#lstNameSetting .dvc-listitem-item-indexable div[subid=btnDelete].dvc-button-up .dvc-button-icon {
+	content: url('images/delete.png');
+}
+#lstNameSetting .dvc-listitem-item-indexable div[subid=btnDelete].dvc-button-down .dvc-button-icon {
+	content: url('images/delete.png');
+}
+#Button_4.dvc-button-up .dvc-button-icon {
+	content: url('images/add.png');
+}
+#Button_4.dvc-button-down .dvc-button-icon {
+	content: url('images/add.png');
 }

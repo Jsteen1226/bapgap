@@ -725,7 +725,7 @@ dvcListitem['visible'] = function(visible){};
 dvcListitem['getId'] = function() {};
 	
 	/**
-	 * listview의 item을 추가한다.
+	 * Listitem의 item을 추가한다.
 	 * @param {Array|String} items 추가할 item 배열, 사용자 정의시에는 String을 사용한다.
 	 * @param {Number} index 추가할 item이 삽입될 위치, undefined일 경우에는 마지막에 추가된다.
 	 * @example
@@ -746,57 +746,57 @@ dvcListitem['getId'] = function() {};
 dvcListitem['add'] = function(items, index){};
 	
 	/**
-	 * listview의 item을 변경한다.
+	 * Listitem의 item을 변경한다.
 	 * @param {Array} items 변경할 item 배열
 	 * @param {Number} index 변경할 item의 시작 index
 	 */
 dvcListitem['update'] = function(items, index){};
 	
 	/**
-	 * listview의 item을 제거한다.
+	 * Listitem의 item을 제거한다.
 	 * @param {Number} index 제거할 item의 index
 	 */
 dvcListitem['remove'] = function(index){};
 
 	/**
-	 * listview의 item을 모두 제거한다.
+	 * Listitem의 item을 모두 제거한다.
 	 */
 dvcListitem['clear'] = function(){};
 
 	/**
-	 * listview의 item을 조회 or 설정한다.
+	 * Listitem의 item을 조회 or 설정한다.
 	 * addItems과 다르게 모든 item을 지운 상태에서 설정하게 된다.
 	 * @param {Array|String} items undefined면 조회, items 추가할 item 배열, 사용자 정의시에는 String을 사용한다.
-	 * @returns {Array|String} listview의 item을 반환한다.
+	 * @returns {Array|String} Listitem의 item을 반환한다.
 	 */
 dvcListitem['items'] = function(items){};
 	
 	/**
-	 * listview의 모든 item의 개수를 얻어온다.
+	 * Listitem의 모든 item의 개수를 얻어온다.
 	 */
 dvcListitem['getCount'] = function(){};
 	
 	/**
-	 * listview의 enable상태를 조회 or 설정한다.
-	 * @param {Number} lineIndex listview의 lineIndex, -1일 경우에는 전체listview에 해당한다.
+	 * Listitem의 enable상태를 조회 or 설정한다.
+	 * @param {Number} lineIndex Listitem의 lineIndex, -1일 경우에는 전체listitem에 해당한다.
 	 * @param {Boolean} e undefined면 조회, enable하기 위해서는 true, disable를 하기 위해서는 false로 설정.
-	 * @returns {Boolean} listview의 enable상태(true | false)를 반환한다.
+	 * @returns {Boolean} Listitem의 enable상태(true | false)를 반환한다.
 	 */	 
 dvcListitem['enable'] = function(lineIndex, e){};
 	
 	/**
-	 * listview의 check상태를 조회 or 설정한다.
-	 * @param {Number} lineIndex listview의 lineIndex
+	 * Listitem의 check상태를 조회 or 설정한다.
+	 * @param {Number} lineIndex Listitem의 lineIndex
 	 * @param {Boolean} v undefined면 조회, check하기 위해서는 true, check를 해제하기 위해서는 false로 설정.
-	 * @returns {Boolean} listview의 check상태(true | false)를 반환한다.
+	 * @returns {Boolean} Listitem의 check상태(true | false)를 반환한다.
 	 */	 
 dvcListitem['checked'] = function(lineIndex, v){};
 	
 	/**
-	 * listview의 한 item에 대해 정보를 조회 or 설정한다.
-	 * @param {Number} lineIndex listview의 lineIndex
+	 * Listitem의 한 item에 대해 정보를 조회 or 설정한다.
+	 * @param {Number} lineIndex Listitem의 lineIndex
 	 * @param {Object} d undefined면 조회, 저장할 정보를 설정.
-	 * @returns {Boolean} listview의 해당라인의 정보를 반환한다.
+	 * @returns {Boolean} Listitem의 해당라인의 정보를 반환한다.
 	 */	 
 dvcListitem['userData'] = function(lineIndex, d){};
 
@@ -1317,7 +1317,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다. (생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcInstance} Widget의 instance
 			 */
 			getInstance : function (id, subid, lineIndex) {
@@ -1329,7 +1329,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcAudio} dvcAudio Widget의 instance
 			 */
 			getAudio : function (id, subid, lineIndex) {
@@ -1341,7 +1341,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcButton} dvcButton Widget의 instance
 			 */
 			getButton : function (id, subid, lineIndex) {
@@ -1353,7 +1353,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcCarousel} dvcCarousel Widget의 instance
 			 */
 			getCarousel : function (id, subid, lineIndex) {
@@ -1365,7 +1365,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcCarouselIndicator} dvcCarouselIndicator Widget의 instance
 			 */
 			getCarouselIndicator : function (id, subid, lineIndex) {
@@ -1377,7 +1377,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcCollapseview} dvcCollapseview Widget의 instance
 			 */
 			getCollapseview : function (id, subid, lineIndex) {
@@ -1388,7 +1388,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 Container Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcContent} dvcContent Widget의 instance
 			 */			
 			getContent : function (id, subid, lineIndex) {
@@ -1400,7 +1400,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcDataSource} dvcDataSource Widget의 instance
 			 */
 			getDataSource : function (id, subid, lineIndex) {
@@ -1412,7 +1412,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcDivision} dvcDivision Widget의 instance
 			 */
 			getDivision : function (id, subid, lineIndex) {
@@ -1424,7 +1424,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcFooter} dvcFooter Widget의 instance
 			 */
 			getFooter : function (id, subid, lineIndex) {
@@ -1436,7 +1436,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcGrid} dvcGrid Widget의 instance
 			 */
 			getGrid : function (id, subid, lineIndex) {
@@ -1448,7 +1448,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcHeader} dvcHeader Widget의 instance
 			 */
 			getHeader : function (id, subid, lineIndex) {
@@ -1460,7 +1460,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcImage} dvcImage Widget의 instance
 			 */
 			getImage : function (id, subid, lineIndex) {
@@ -1472,7 +1472,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcImageButton} dvcImageButton Widget의 instance
 			 */
 			getImageButton : function (id, subid, lineIndex) {
@@ -1484,7 +1484,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcLabel} dvcLabel Widget의 instance
 			 */
 			getLabel : function (id, subid, lineIndex) {
@@ -1496,7 +1496,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcLayoutview} dvcLayoutview Widget의 instance
 			 */
 			getLayoutview : function (id, subid, lineIndex) {
@@ -1508,10 +1508,10 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcListitem} dvcListitem Widget의 instance
 			 */
-			getListview : function (id, subid, lineIndex) {
+			getListitem : function (id, subid, lineIndex) {
 				return dvcListitem;
 			},
 		
@@ -1520,7 +1520,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcPageBox} dvcPageBox Widget의 instance
 			 */
 			getPageBox : function (id, subid, lineIndex) {
@@ -1532,7 +1532,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcPicker} dvcPicker Widget의 instance
 			 */
 			getPicker : function (id, subid, lineIndex) {
@@ -1544,7 +1544,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcProgress} dvcProgress Widget의 instance
 			 */
 			getProgress : function (id, subid, lineIndex) {
@@ -1556,7 +1556,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcScrollview} dvcScrollview Widget의 instance
 			 */
 			getScrollview : function (id, subid, lineIndex) {
@@ -1579,7 +1579,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcSwitch} dvcSwitch Widget의 instance
 			 */
 			getSwitch : function (id, subid, lineIndex) {
@@ -1591,7 +1591,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcTextarea} dvcTextarea Widget의 instance
 			 */
 			getTextarea : function (id, subid, lineIndex) {
@@ -1603,7 +1603,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcTextfield} dvcTextfield Widget의 instance
 			 */
 			getTextfield : function (id, subid, lineIndex) {
@@ -1615,7 +1615,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcTreeview} dvcTreeview Widget의 instance
 			 */
 			getTreeview : function (id, subid, lineIndex) {
@@ -1627,7 +1627,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcVideo} dvcVideo Widget의 instance
 			 */
 			getVideo : function (id, subid, lineIndex) {
@@ -1639,7 +1639,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcCheckbox} dvcCheckbox Widget의 instance
 			 */
 			getCheckbox : function (id, subid, lineIndex) {
@@ -1651,7 +1651,7 @@ var $ = {
 			 * 
 			 * @param {String} id : id 값을 넣는다. Basic Widget의 경우는 자신의 부모 중 가장 가까이에 있는 View Widget의 id를 넣는다.
 			 * @param {String|undefined} subid : Basic Widget의 경우 사용 한다. 자신의 subid를 넣는다.(생략가능)
-			 * @param {Number|undefined} lineIndex : Listview의 경우 사용 한다. Listview의 lineIndex를 넣는다. (생략가능)
+			 * @param {Number|undefined} lineIndex : Listitem의 경우 사용 한다. Listitem의 lineIndex를 넣는다. (생략가능)
 			 * @return {dvcRadio} dvcRadio Widget의 instance
 			 */
 			getRadio : function (id, subid, lineIndex) {
@@ -1659,7 +1659,7 @@ var $ = {
 			},
 			
 			/**
-			 * body의 child인 page중에서 현재 활성화된 page id를 반환한다.
+			 * body의 child인 page중에서 현재 활성화된 page를 반환한다.
 			 * 
 			 * @returns {String} page id
 			 */
