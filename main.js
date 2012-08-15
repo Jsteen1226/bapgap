@@ -38,7 +38,7 @@ function Button_1_onclick(e, obj, index) {
 //--Button_0_onclick - start
 function Button_0_onclick(e, obj, index) {
 	// 설정 버튼
-	$.davinci.changePage("pgSetting");
+	$.davinci.changePage("pgSetting", {changeHash: false});
 }
 //--Button_0_onclick - end
 
@@ -58,7 +58,7 @@ function Button_2_onclick(e, obj, index) {
 
 	setObject("Setting", settingValue);
 	
-	$.davinci.changePage("pgMain");
+	$.davinci.changePage("pgMain", {changeHash: false});
 }
 //--Button_2_onclick - end
 
@@ -68,7 +68,7 @@ function Button_2_onclick(e, obj, index) {
 // pgSetting의 CANCEL 버튼
 //--Button_3_onclick - start
 function Button_3_onclick(e, obj, index) {
-	$.davinci.changePage("pgMain");
+	$.davinci.changePage("pgMain", {changeHash: false});
 }
 //--Button_3_onclick - end
 
@@ -220,7 +220,7 @@ function btnHOk_onclick(e, obj, index) {
 		setObject("Today" + $.pgInput.today, todayStorage);
 	}
 	
-	$.davinci.changePage("pgMain");
+	$.davinci.changePage("pgMain", {changeHash: false});
 }
 //--btnHOk_onclick - end
 
@@ -230,7 +230,7 @@ function btnHOk_onclick(e, obj, index) {
 //--btnInput_onclick - start
 function btnInput_onclick(e, obj, index) {
 	$.pgInput.date = new Date();
-	$.davinci.changePage("pgInput");
+	$.davinci.changePage("pgInput", {changeHash: false});
 }
 //--btnInput_onclick - end
 
@@ -240,7 +240,7 @@ function btnInput_onclick(e, obj, index) {
 	
 //--Button_6_onclick - start
 function Button_6_onclick(e, obj, index) {
-	$.davinci.changePage("pgMain");
+	$.davinci.changePage("pgMain", {changeHash: false});
 }
 //--Button_6_onclick - end
 
@@ -270,8 +270,8 @@ function Button_7_onclick(e, obj, index) {
 	
 	$.pgInput.date = new Date(year, month - 1, date);
 	
-	$.davinci.popup.close("popup1");
-	$.davinci.changePage("pgInput");
+//	$.davinci.popup.close("popup1");
+//	$.davinci.changePage("pgInput", {changeHash: false});
 }
 //--Button_7_onclick - end
 
