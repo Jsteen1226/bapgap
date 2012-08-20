@@ -1,4 +1,4 @@
-#Scrollview_0 {
+﻿#Scrollview_0 {
 	left: 0px;
 	right: 0px;
 	top: 40px;
@@ -239,4 +239,19 @@
 	top: 5px;
 	width: 101px;
 	height: 30px;
+}
+#Scrollview_2 {
+	left: 0px;
+	right: 0px;
+	top: 0px;
+	bottom: 0px;
+}
+#lstMain .dvc-listitem-item-indexable {
+	min-height: 60px;
+}
+#lstMain .dvc-listitem-item-indexable div[subid=lblDate] {
+	left: 15px;
+	top: 20px;
+	height: 20px;
+	right: 40px;
 }

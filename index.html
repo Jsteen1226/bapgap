@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 	<html id="obj_1">
 		<head>
 			<meta charset="utf-8">
@@ -22,8 +22,14 @@
 			</script>
 		</head>
 		<body>
-			<div data-role="page" id="pgMain">
+			<div data-role="page" id="pgMain" ev-onpageshow="pgMain_onpageshow">
 				<div data-role="dvcContent" id="obj_5">
+					<div data-role="dvcScrollview" id="Scrollview_2">
+						<div data-role="dvcListitem" id="lstMain" data-type="link" ev-onclick="lstMain_onclick">
+							<div data-role="dvcLabel" id="Label_10" data-text="Label" subid="lblDate">
+							</div>
+						</div>
+					</div>
 				</div>
 				<div data-role="dvcHeader" id="hdMain">
 					<div data-role="dvcLabel" id="Label_7" data-text="밥값 계산" data-text-align="center">

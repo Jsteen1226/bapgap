@@ -218,6 +218,24 @@ function btnHOk_onclick(e, obj, index) {
 		todayStorage.realMoney = $.davinci.getTextfield("txfRealMoney").text();
 		
 		setObject("Today" + $.pgInput.today, todayStorage);
+		
+		
+		var daysList = getObject("DaysList");
+		if(!daysList) {
+			daysList = [];
+		}
+		
+		// find
+		for (var i=0;i<daysList.length;i++) {
+			if(daysList[i] === ("Today" + $.pgInput.today)) {
+				break;
+			}
+		}
+		
+		if(i == daysList.length) {
+			daysList.push("Today" + $.pgInput.today);
+			setObject("DaysList", daysList);
+		}
 	}
 	
 	$.davinci.changePage("pgMain", {changeHash: false});
@@ -270,8 +288,8 @@ function Button_7_onclick(e, obj, index) {
 	
 	$.pgInput.date = new Date(year, month - 1, date);
 	
-//	$.davinci.popup.close("popup1");
-//	$.davinci.changePage("pgInput", {changeHash: false});
+	$.davinci.popup.close("popup1");
+	$.davinci.changePage("pgInput", {changeHash: false});
 }
 //--Button_7_onclick - end
 
@@ -304,6 +322,14 @@ function pgDatePicker_onpageinit(e, obj) {
 
 //--pgDatePicker_onpageshow - start
 function pgDatePicker_onpageshow(e, obj) {
+
+	var pkrYear = $.pgDatePicker.pkrYear;
+	var pkrMonth = $.pgDatePicker.pkrMonth;
+	var pkrDate = $.pgDatePicker.pkrDate;
+	pkrYear.refresh();
+	pkrMonth.refresh();
+	pkrDate.refresh();
+
 	var todayDate = $.pgDatePicker.date;
 
 	$.pgDatePicker.pkrYear.setIndex(todayDate.getFullYear() - 1900);
@@ -366,3 +392,49 @@ function adjustEndDate() {
 		$.pgDatePicker.pkrDate.setIndex(endDate - 1);
 	}
 }
+
+
+
+	
+//--lstMain_onclick - start
+function lstMain_onclick(e, obj, index) {
+	var fullDate = obj.items()[index].lblDate.split('/');
+	var year = fullDate[0];
+	var month = fullDate[1];
+	var date = fullDate[2];
+	
+	$.pgInput.date = new Date(year, month - 1, date);
+	
+	$.davinci.changePage("pgInput", {changeHash: false});
+	
+	
+}
+//--lstMain_onclick - end
+
+	
+
+
+	
+//--pgMain_onpageshow - start
+function pgMain_onpageshow(e, obj) {
+	
+	var daysList = getObject("DaysList");
+	if(!daysList) {
+		return;
+	}
+
+	var items = [];
+	for(var i=0;i<daysList.length;i++) {
+		var today = daysList[i].slice(5);
+		items.push({
+			"lblDate" : today
+		});
+	}
+	
+	var lstMain = $.davinci.getListitem("lstMain");
+	lstMain.items(items);
+
+}
+//--pgMain_onpageshow - end
+
+	
