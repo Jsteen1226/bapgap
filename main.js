@@ -322,14 +322,6 @@ function pgDatePicker_onpageinit(e, obj) {
 
 //--pgDatePicker_onpageshow - start
 function pgDatePicker_onpageshow(e, obj) {
-
-	var pkrYear = $.pgDatePicker.pkrYear;
-	var pkrMonth = $.pgDatePicker.pkrMonth;
-	var pkrDate = $.pgDatePicker.pkrDate;
-	pkrYear.refresh();
-	pkrMonth.refresh();
-	pkrDate.refresh();
-
 	var todayDate = $.pgDatePicker.date;
 
 	$.pgDatePicker.pkrYear.setIndex(todayDate.getFullYear() - 1900);
